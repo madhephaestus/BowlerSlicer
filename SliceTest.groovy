@@ -67,6 +67,10 @@ ISlice se = new ISlice (){
 		return true
 	}
 	Vertex getUnique(Vertex desired, ArrayList<Vertex> uniquePoints){
+		if(Math.abs(desired.z)>0.0001){
+			println "Bad point! "+desired
+			throw new RuntimeException("Bad point!")
+		}
 		for(Vertex existing:uniquePoints)
 					if(	touching(desired,existing)){
 						return 	existing;		
@@ -89,6 +93,24 @@ ISlice se = new ISlice (){
 
         return fbe.contains(e.getP1().pos) || fbe.contains(e.getP2().pos);
     }
+    
+	/**
+	 * Returns true if this polygon lies entirely in the z plane
+	 *
+	 * @param polygon
+	 *            The polygon to check
+	 * @return True if this polygon is entirely in the z plane
+	 */
+	private static boolean isPolygonAllAtZero(Polygon polygon) {
+		// Return false if there is a vertex in this polygon which is not at
+		// zero
+		// Else, the polygon is at zero if every vertex in it is at zero
+		for (Vertex v : polygon.vertices)
+			if (Slice.isVertexAtZero(v))
+				return true;
+
+		return false;
+	}
 	
 	/**
 	 * An interface for slicking CSG objects into lists of points that can be extruded back out
@@ -101,28 +123,30 @@ ISlice se = new ISlice (){
 		println "Groovy Slicing engine"
 		
 		List<Polygon> rawPolygons = new ArrayList<>();
-		
-		// Invert the incoming transform
-		Matrix4d inverse = slicePlane.scale(1.0D / slicePlane.getScale()).getInternalMatrix();
-		inverse.invert();
 
 		// Actual slice plane
-		CSG planeCSG = new Cube(incoming.getMaxX() - incoming.getMinX(), incoming.getMaxY() - incoming.getMinY(), 1)
-				.noCenter().toCSG();
-		planeCSG = planeCSG.movex((planeCSG.getMaxX() - planeCSG.getMinX()) / -2.0D)
-				.movey((planeCSG.getMaxY() - planeCSG.getMinY()) / -2.0D);
-		
+		CSG planeCSG = new Cube(10000, 100000, 0.01)
+				.toCSG()
+				.toZMin()
 		 
 		// Loop over each polygon in the slice of the incoming CSG
 		// Add the polygon to the final slice if it lies entirely in the z plane
 		rawPolygons
 			.addAll(
 					incoming
-						.intersect(planeCSG)
+						.intersect(planeCSG)						
 						.getPolygons()
 						.findAll{Slice.isPolygonAtZero(it)}
-						.collect{it}
+						.collect{
+							for(Vertex v:it.vertices){
+								//v.pos=new Vector3d(v.pos.x,v.pos.y,0.0)
+							}
+							return it
+						}
 				);
+		CSG flat = CSG.fromPolygons(rawPolygons)
+		flat=flat.union(flat)
+		
 		//return Edge.boundaryPolygonsOfPlaneGroup(rawPolygons)		
 		ArrayList<Vertex> uniquePoints = []
 		ArrayList<ArrayList<Edge>> edges = []
@@ -131,9 +155,17 @@ ISlice se = new ISlice (){
 			edges.add(newList)
 			List<Vertex> vertices = it.vertices;
 			for(int i=0;i<vertices.size()-1;i++){
-				newList.add(new Edge(getUnique(vertices.get(i),uniquePoints), getUnique(vertices.get(i+1),uniquePoints)))
+				try{
+					newList.add(new Edge(getUnique(vertices.get(i),uniquePoints), getUnique(vertices.get(i+1),uniquePoints)))
+				}catch(Exception ex){
+					println "Point Pruned "
+				}
 			}
-			newList.add(new Edge(getUnique(vertices.get(vertices.size()-1),uniquePoints), getUnique(vertices.get(0),uniquePoints)))
+			try{
+				newList.add(new Edge(getUnique(vertices.get(vertices.size()-1),uniquePoints), getUnique(vertices.get(0),uniquePoints)))
+			}catch(Exception ex){
+				println "Point Pruned "
+			}
 		}
 		
 		edges.forEach{// search the list of all edges
@@ -167,33 +199,9 @@ ISlice se = new ISlice (){
 				}
 			}
 		}
-		/*
-		for(int a=0;a<edges.size();a++){
-			allTest=edges.get(a)
-			for(int b=0;b<allTest.size();b++){
-				Edge myEdge  = allTest.get(b)
-				for(int i=0;i<edges.size();i++){// for each edge we cheack every other edge
-						testerList = edges.get(i)
-						for(int j=0;j<testerList.size();j++){
-							Edge tester=testerList.get(j)
-							if(	(touching(tester.p1,myEdge.p1)&&
-								touching(tester.p2,myEdge.p2)) ||
-								(touching(tester.p2,myEdge.p1)&&
-								touching(tester.p1,myEdge.p2)) 
-								){// With unique points the internal method should check this
-								println "Pruning Internal Edge "+length(myEdge)
-								//testerList.remove(tester)
-								//allTest.remove(myEdge)
-								
-							}
-						}
-				}
-			}
-		}
-		*/
 		List<Polygon> fixed =  edges.collect{
 			return Edge.toPolygon(
-					Extrude.toCCW(Edge.toPoints(it))
+					Edge.toPoints(it)
 					,Plane.XY_PLANE)
 		}
 
@@ -206,7 +214,7 @@ ISlice se = new ISlice (){
 			for (int j = 0; j < t.size(); j++)
 				triangles.add(t.get(j).toPolygon());
 		}
-		
+		//return triangles
 		return Edge.boundaryPathsWithHoles(
                 	Edge.boundaryPaths(
                 		Edge.boundaryEdgesOfPlaneGroup(triangles)))
@@ -224,7 +232,15 @@ ISlice se = new ISlice (){
 
 Slice.setSliceEngine(se)
 // Create a CSG to slice
-CSG carrot = new Cube(10, 10, 10).toCSG().difference(new Cube(4, 4, 100).toCSG());
+CSG carrot = new Cube(10, 10, 10)
+.toCSG()
+.toXMin()
+.difference(
+	new Cube(4, 4, 100)
+	.toCSG()
+	.toXMin()
+	)
+	.toZMin()
 
 // Get a slice
-return Slice.slice(carrot, new Transform(), 0);
+return [Slice.slice(carrot, new Transform(), 0),carrot]
