@@ -125,7 +125,7 @@ ISlice se = new ISlice (){
 		List<Polygon> rawPolygons = new ArrayList<>();
 
 		// Actual slice plane
-		CSG planeCSG = new Cube(10000, 100000, 0.01)
+		CSG planeCSG = new Cube(incoming.getTotalX()*2, incoming.getTotalY()*2, 0.01)
 				.toCSG()
 				.toZMin()
 		 
