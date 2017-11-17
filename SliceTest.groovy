@@ -89,7 +89,7 @@ ISlice se = new ISlice (){
 
         return fbe.contains(e.getP1().pos) || fbe.contains(e.getP2().pos);
     }
-
+	
 	/**
 	 * An interface for slicking CSG objects into lists of points that can be extruded back out
 	 * @param incoming			  Incoming CSG to be sliced
@@ -142,7 +142,7 @@ ISlice se = new ISlice (){
 					testerList = edges.get(i)
 					for(int j=0;j<testerList.size();j++){
 						Edge tester=testerList.get(j)
-						if(tester==it){
+						if(tester==myEdge){
 							continue;// skip comparing to itself
 						}
 						if(falseBoundaryEdgeSharedWithOtherEdge(tester,myEdge)
@@ -153,11 +153,11 @@ ISlice se = new ISlice (){
 							double lenghtFirstToFirst = length(new Edge(tester.p1,myEdge.p1))
 							double lenghtFirstToSecond = length(new Edge(tester.p1,myEdge.p2))
 							if(lenghtFirstToFirst<lenghtFirstToSecond){
-								testerList.add(j++,new Edge(tester.p1,myEdge.p1))
-								testerList.add(j,new Edge(myEdge.p1,tester.p2))
+								testerList.add(j,new Edge(tester.p1,myEdge.p1))
+								testerList.add(j+1,new Edge(myEdge.p1,tester.p2))
 							}else{
-								testerList.add(j++,new Edge(tester.p1,myEdge.p2))
-								testerList.add(j,new Edge(myEdge.p2,tester.p2))
+								testerList.add(j,new Edge(tester.p1,myEdge.p2))
+								testerList.add(j+1,new Edge(myEdge.p2,tester.p2))
 							}
 							
 							println "Line touching! "+length(myEdge)+" other "+length(tester)
@@ -167,9 +167,58 @@ ISlice se = new ISlice (){
 				}
 			}
 		}
-		return edges.collect{
-			return Edge.toPolygon(Edge.toPoints(it),Plane.XY_PLANE)
+		/*
+		for(int a=0;a<edges.size();a++){
+			allTest=edges.get(a)
+			for(int b=0;b<allTest.size();b++){
+				Edge myEdge  = allTest.get(b)
+				for(int i=0;i<edges.size();i++){// for each edge we cheack every other edge
+						testerList = edges.get(i)
+						for(int j=0;j<testerList.size();j++){
+							Edge tester=testerList.get(j)
+							if(	(touching(tester.p1,myEdge.p1)&&
+								touching(tester.p2,myEdge.p2)) ||
+								(touching(tester.p2,myEdge.p1)&&
+								touching(tester.p1,myEdge.p2)) 
+								){// With unique points the internal method should check this
+								println "Pruning Internal Edge "+length(myEdge)
+								//testerList.remove(tester)
+								//allTest.remove(myEdge)
+								
+							}
+						}
+				}
+			}
 		}
+		*/
+		List<Polygon> fixed =  edges.collect{
+			return Edge.toPolygon(
+					Extrude.toCCW(Edge.toPoints(it))
+					,Plane.XY_PLANE)
+		}
+
+		//return fixed
+		List<Polygon> triangles  = []
+		for (int i = 0; i < fixed.size(); i++) {
+			eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(fixed.get(i));
+			eu.mihosoft.vrl.v3d.ext.org.poly2tri.Poly2Tri.triangulate(p);
+			List<DelaunayTriangle> t = p.getTriangles();
+			for (int j = 0; j < t.size(); j++)
+				triangles.add(t.get(j).toPolygon());
+		}
+		
+		return Edge.boundaryPathsWithHoles(
+                	Edge.boundaryPaths(
+                		Edge.boundaryEdgesOfPlaneGroup(triangles)))
+	}
+	Polygon findboarder(List<Polygon> triangles,ArrayList<Vertex> uniquePoints){
+		
+	}
+	boolean check(Vertex v,ArrayList<Vertex> uniquePoints){
+		
+	}
+	void consume(Vertex v,ArrayList<Vertex> uniquePoints){
+		
 	}
 }
 
