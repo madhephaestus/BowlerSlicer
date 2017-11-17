@@ -125,10 +125,8 @@ ISlice se = new ISlice (){
 		List<Polygon> rawPolygons = new ArrayList<>();
 
 		// Actual slice plane
-		CSG planeCSG = new Cube(incoming.getTotalX()*2, incoming.getTotalY()*2, 0.01)
-				.toCSG()
+		CSG planeCSG = incoming.getBoundingBox()
 				.toZMin()
-		 
 		// Loop over each polygon in the slice of the incoming CSG
 		// Add the polygon to the final slice if it lies entirely in the z plane
 		rawPolygons
@@ -192,7 +190,7 @@ ISlice se = new ISlice (){
 								testerList.add(j+1,new Edge(myEdge.p2,tester.p2))
 							}
 							
-							println "Line touching! "+length(myEdge)+" other "+length(tester)
+							println "Line touching but not the same! "+length(myEdge)+" other "+length(tester)
 							
 						}
 					}
@@ -240,7 +238,7 @@ CSG carrot = new Cube(10, 10, 10)
 	.toCSG()
 	.toXMin()
 	)
-	.toZMin()
+	
 
 // Get a slice
 return [Slice.slice(carrot, new Transform(), 0),carrot]
