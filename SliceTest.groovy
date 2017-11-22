@@ -114,11 +114,13 @@ ISlice se = new ISlice (){
 			ThreadUtil.wait(500)
 			 
 			//edges.forEach{// search the list of all edges
-			for(ArrayList<Edge> it: edges){
-				for(Edge myEdge:it){// search through the edges in each list
+			for (int k = 0; k < edges.size(); k++) {
+				ArrayList<Edge> itList = edges.get(k);
+				for (int l = 0; l < itList.size(); l++) {
+					Edge myEdge = itList.get(l);
 					for(int i=0;i<edges.size();i++){// for each edge we cheack every other edge
 						ArrayList<Edge> testerList = edges.get(i);
-						if(it==testerList){
+						if(itList==testerList){
 							continue;// skip comparing to itself
 						}
 						for(int j=0;j<testerList.size();j++){
@@ -128,37 +130,39 @@ ISlice se = new ISlice (){
 							(myEdge.getP1().pos.equals(tester.getP2().pos)&&
 							myEdge.getP2().pos.equals(tester.getP1().pos) )
 							;
-							boolean sharedEndPoints = myEdge.getP1().pos.equals(tester.getP1().pos)
-									|| myEdge.getP1().pos.equals(tester.getP2().pos)
-									|| myEdge.getP2().pos.equals(tester.getP1().pos)
-									|| myEdge.getP2().pos.equals(tester.getP2().pos);
-
-					        if (!sharedEndPoints) {
-					           int baseIndex = j
-					           boolean onP1 = tester.contains(myEdge.getP1().pos)
-					           boolean onP2 = tester.contains(myEdge.getP2().pos)
-					           if(	onP1&&
-					           	onP2){
-					           	testerList.remove(tester);
-								double lenghtFirstToFirst = length(new Edge(tester.getP1(),myEdge.getP1()));
-								double lenghtFirstToSecond = length(new Edge(tester.getP1(),myEdge.getP2()));
-								if(lenghtFirstToFirst<lenghtFirstToSecond){
-									testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
-									testerList.add(baseIndex++,new Edge(myEdge.getP1(),myEdge.getP2()));
-									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
-								}else{
-									testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP2()));
-									testerList.add(baseIndex++,new Edge(myEdge.getP2(),myEdge.getP1()));
-									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
+							boolean sharedEndPoints = 	myEdge.getP1().pos.equals(tester.getP1().pos)||
+													myEdge.getP1().pos.equals(tester.getP2().pos)||
+													myEdge.getP2().pos.equals(tester.getP1().pos)||
+													myEdge.getP2().pos.equals(tester.getP2().pos);
+						int baseIndex = j
+						if (!sharedEndPoints) {
+						      
+							boolean onP1 = tester.contains(myEdge.getP1().pos)
+							boolean onP2 = tester.contains(myEdge.getP2().pos)
+							if(	onP1&&
+								onP2){
+								//sub edge lies entirely on the line
+								//make 3 new edges to deal with this
+								testerList.remove(tester);
+							double lenghtFirstToFirst = length(new Edge(tester.getP1(),myEdge.getP1()));
+							double lenghtFirstToSecond = length(new Edge(tester.getP1(),myEdge.getP2()));
+							if(lenghtFirstToFirst<lenghtFirstToSecond){
+								testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
+								testerList.add(baseIndex++,new Edge(myEdge.getP1(),myEdge.getP2()));
+								testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
+							}else{
+								testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP2()));
+								testerList.add(baseIndex++,new Edge(myEdge.getP2(),myEdge.getP1()));
+								testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
 								}
 								
 								
-					           }else{
+							 }else{
 								if(onP1){								
 									testerList.remove(tester);
 									testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
 									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
-	
+							
 								}else						
 								if(onP2){								
 									testerList.remove(tester);
@@ -166,15 +170,21 @@ ISlice se = new ISlice (){
 									testerList.add(baseIndex++,new Edge(myEdge.getP2(),tester.getP2()));
 								}
 								
-					        }
-					        if(baseIndex>j){
-								//j-=1;// back trace over newly created objects
 							}
+													   
 						}
-						Threas.sleep(1)
+						//
+						//
+						//println "Checking list i "+i+" of "+edges.size()
+						//println "Checking list j "+j+" of "+testerList.size()
+						
+						//Thread.sleep(1)
 						}
 					}
+					//println "Checking list l "+l+" of "+itList.size()
 				}
+				Thread.sleep(0,1);// force a sleep so that interruptions can be allowed
+				println "Checking list k "+k+" of "+edges.size()
 			}
 			List<Polygon> fixed =  new ArrayList<>();
 					
@@ -184,6 +194,7 @@ ISlice se = new ISlice (){
 						Edge.toPoints(it)
 						,Plane.XY_PLANE));
 			}
+			println "Fixed edges"
 			BowlerStudioController.clearCSG()
 			bc.getJfx3dmanager().clearUserNode()
 			bc.addObject((Object)fixed,null)
@@ -198,14 +209,16 @@ ISlice se = new ISlice (){
 				for (int j = 0; j < t.size(); j++)
 					triangles.add(t.get(j).toPolygon());
 			}
+			println "Triangles"
 			BowlerStudioController.clearCSG()
 			bc.getJfx3dmanager().clearUserNode()
 			bc.addObject((Object)triangles,null)
 			ThreadUtil.wait(500)
-			
+			println "Final outline"
 			List<Polygon> parts= Edge.boundaryPathsWithHoles(
 	                	Edge.boundaryPaths(
 	                		Edge.boundaryEdgesOfPlaneGroup(triangles)));
+	          println "Returning"      		
 	          BowlerStudioController.clearCSG()
 	          bc.getJfx3dmanager().clearUserNode()
 	          bc.addObject((Object)parts,null)     		
