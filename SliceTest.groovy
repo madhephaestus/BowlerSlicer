@@ -311,7 +311,13 @@ ISlice se = new ISlice (){
 					}
 					if(next == null){
 						//println  " equals no point! "+v
-						boundaryPath.remove(v)
+						//boundaryPath.remove(v)
+						if(boundaryPath.size()>2){
+							boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
+							result.add(Polygon.fromPoints(boundaryPath));
+							boundaryPath.clear()
+							println "Last Polygon, correcting"
+						}
 					}
 				}
 				// check to see the path closed
@@ -326,7 +332,7 @@ ISlice se = new ISlice (){
 				}
 				Thread.sleep(1)
 			}
-			if(boundaryPath.size()>0){
+			if(boundaryPath.size()>2){
 				//println "Last Polygon, correcting"
 				boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
 				result.add(Polygon.fromPoints(boundaryPath));
@@ -478,7 +484,9 @@ CSG carrot = new Cylinder(100,  10)
 .toCSG()
 .difference(
 	[new Cylinder(40, 100)
-	.toCSG(),
+	.toCSG()
+	.movex(75)
+	,
 	pin.movex(60),
 	pin.movex(-60),
 	cubePin.movey(60),
