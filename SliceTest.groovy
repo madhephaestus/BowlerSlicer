@@ -8,7 +8,7 @@ import eu.mihosoft.vrl.v3d.ext.org.poly2tri.DelaunayTriangle;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 
 
-
+println "Loading slicer"
 ISlice se = new ISlice (){
 		
 
@@ -134,52 +134,48 @@ ISlice se = new ISlice (){
 													myEdge.getP1().pos.equals(tester.getP2().pos)||
 													myEdge.getP2().pos.equals(tester.getP1().pos)||
 													myEdge.getP2().pos.equals(tester.getP2().pos);
-						int baseIndex = j
-						if (!sharedEndPoints) {
-						      
 							boolean onP1 = tester.contains(myEdge.getP1().pos)
 							boolean onP2 = tester.contains(myEdge.getP2().pos)
+													
+							int baseIndex = j	
 							if(	onP1&&
-								onP2){
-								//sub edge lies entirely on the line
-								//make 3 new edges to deal with this
-								testerList.remove(tester);
-							double lenghtFirstToFirst = length(new Edge(tester.getP1(),myEdge.getP1()));
-							double lenghtFirstToSecond = length(new Edge(tester.getP1(),myEdge.getP2()));
-							if(lenghtFirstToFirst<lenghtFirstToSecond){
-								testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
-								testerList.add(baseIndex++,new Edge(myEdge.getP1(),myEdge.getP2()));
-								testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
-							}else{
-								testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP2()));
-								testerList.add(baseIndex++,new Edge(myEdge.getP2(),myEdge.getP1()));
-								testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
-								}
+									onP2){
+									//sub edge lies entirely on the line
+									//make 3 new edges to deal with this
+									testerList.remove(tester);
+									// check the relative length of points
+									// we know the path of tester is 1->2 so we interupt it in that order
+								Edge fe=new Edge(tester.getP1(),myEdge.getP1())
+								Edge se=new Edge(tester.getP1(),myEdge.getP2())
+								double lenghtFirstToFirst = length(fe);
+								double lenghtFirstToSecond = length(se);
+								if(lenghtFirstToFirst<lenghtFirstToSecond){
+									testerList.add(baseIndex++,fe);
+									testerList.add(baseIndex++,new Edge(myEdge.getP1(),myEdge.getP2()));
+									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
+								}else{
+									testerList.add(baseIndex++,se);
+									testerList.add(baseIndex++,new Edge(myEdge.getP2(),myEdge.getP1()));
+									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
+									}
 								
 								
-							 }else{
-								if(onP1){								
+							 }// if both points are on the line
+							 else{// maybe one is on the line if both arent
+								if(onP1){	// point one is on the line segment but not p2							
 									testerList.remove(tester);
 									testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
 									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
 							
-								}else						
-								if(onP2){								
+								}						
+								if(onP2){	// point 2 is on the line not point one							
 									testerList.remove(tester);
 									testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP2()));
 									testerList.add(baseIndex++,new Edge(myEdge.getP2(),tester.getP2()));
 								}
-								
-							}
-													   
-						}
-						//
-						//
-						//println "Checking list i "+i+" of "+edges.size()
-						//println "Checking list j "+j+" of "+testerList.size()
+							 }
 						
-						//Thread.sleep(1)
-						}
+						}// j for loop
 					}
 					//println "Checking list l "+l+" of "+itList.size()
 				}
