@@ -136,7 +136,7 @@ ISlice se = new ISlice (){
 						}
 					}
 					if(internalEdge==false){
-						if(length(myEdge)>0.0000001)
+						if(length(myEdge)>Plane.EPSILON)
 							edgesOnly.add(myEdge)
 						
 					}
@@ -196,12 +196,12 @@ ISlice se = new ISlice (){
 				edges.add(newList);
 				addEdges(it,newList,uniquePoints)
 			}
-			println "raw"
-			BowlerStudioController.clearCSG()
-			bc.getJfx3dmanager().clearUserNode()
-			bc.addObject((Object)rawPolygons,null)
-			ThreadUtil.wait(500)
-			 println "Begin checking edges"
+			//println "raw"
+			//BowlerStudioController.clearCSG()
+			//bc.getJfx3dmanager().clearUserNode()
+			//bc.addObject((Object)rawPolygons,null)
+			//ThreadUtil.wait(500)
+			 //println "Begin checking edges"
 			 
 			//edges.forEach{// search the list of all edges
 			for (int k = 0; k < edges.size(); k++) {
@@ -235,11 +235,11 @@ ISlice se = new ISlice (){
 						,Plane.XY_PLANE));
 				}		
 
-			println "Fixed"
-			BowlerStudioController.clearCSG()
-			bc.getJfx3dmanager().clearUserNode()
-			bc.addObject((Object)fixed,null)
-			ThreadUtil.wait(3000)
+			//println "Fixed"
+			//BowlerStudioController.clearCSG()
+			//bc.getJfx3dmanager().clearUserNode()
+			//bc.addObject((Object)fixed,null)
+			//ThreadUtil.wait(3000)
 			//return rawPolygons
 			//return fixed
 			
@@ -254,24 +254,24 @@ ISlice se = new ISlice (){
 				addEdges(p,allEdges,uniquePoints)
 			}
 			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
-			println "Final edges = "+finalEdges.size()+" from "+allEdges.size()
-			println "Edges Filtered"
-			BowlerStudioController.clearCSG()
-			bc.getJfx3dmanager().clearUserNode()
+			//println "Final edges = "+finalEdges.size()+" from "+allEdges.size()
+			//println "Edges Filtered"
+			//BowlerStudioController.clearCSG()
+			//bc.getJfx3dmanager().clearUserNode()
 			//bc.addObject((Object)trianglesFiletered,null)
-			showEdges(finalEdges)
-			ThreadUtil.wait(1000)
+			//showEdges(finalEdges)
+			//ThreadUtil.wait(1000)
 			
 			//return trianglesFiletered
-			println "Final outline"
+			//println "Final outline"
 			//List<Polygon> parts= Edge.boundaryPathsWithHoles(
 	        //        	Edge.boundaryPaths(
 	         //       		Edge.boundaryEdgesOfPlaneGroup(triangles)));
 	         List<Polygon>boundaryPaths =  boundaryPaths(finalEdges)
-	         println "Boundary paths = "+boundaryPaths.size()
+	         //println "Boundary paths = "+boundaryPaths.size()
 	         List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
-		    println "Returning "  +parts.size()    		
-		    return boundaryPaths;  		
+		    //println "Returning "  +parts.size()    		
+		    return parts;  		
 		}
 		/**
 	     * Returns a list of all boundary paths.
@@ -291,7 +291,7 @@ ISlice se = new ISlice (){
 			while(consumable.size()>0){
 				Edge next=null;
 				if(boundaryPath.size()==0){
-					println "Loading new path"
+					//println "Loading new path"
 					next = consumable.remove(0)
 					boundaryPath.add(next.getP1().pos)
 					boundaryPath.add(next.getP2().pos)
@@ -310,7 +310,7 @@ ISlice se = new ISlice (){
 						}
 					}
 					if(next == null){
-						println  " equals no point! "+v
+						//println  " equals no point! "+v
 						boundaryPath.remove(v)
 					}
 				}
@@ -319,7 +319,7 @@ ISlice se = new ISlice (){
 					if(boundaryPath.get(0).equals(boundaryPath.get(boundaryPath.size()-1))){
 						Polygon p = Polygon.fromPoints(boundaryPath)
 						result.add(p);
-						println "Path detected and added "+boundaryPath.size()
+						//println "Path detected and added "+boundaryPath.size()
 						boundaryPath.clear()
 						
 					}
@@ -327,7 +327,7 @@ ISlice se = new ISlice (){
 				Thread.sleep(1)
 			}
 			if(boundaryPath.size()>0){
-				println "Junk Polygon, correcting"
+				//println "Last Polygon, correcting"
 				boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
 				result.add(Polygon.fromPoints(boundaryPath));
 				boundaryPath.clear()
@@ -399,7 +399,7 @@ ISlice se = new ISlice (){
 				int baseIndex = j	
 				if(	onP1&&
 						onP2){
-					println "Both on line \n" +myEdge.getP1()	+" "+myEdge.getP2()	
+					//println "Both on line \n" +myEdge.getP1()	+" "+myEdge.getP2()	
 					//sub edge lies entirely on the line
 					//make 3 new edges to deal with this
 					testerList.remove(tester);
@@ -425,7 +425,7 @@ ISlice se = new ISlice (){
 				 }// if both points are on the line
 				 else{// maybe one is on the line if both arent
 					if(onP1){	// point one is on the line segment but not p2	
-						println "P1 on line " +myEdge.getP1()					
+						//println "P1 on line " +myEdge.getP1()					
 						testerList.remove(tester);
 						testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
 						testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
@@ -433,7 +433,7 @@ ISlice se = new ISlice (){
 				
 					}						
 					if(onP2){	// point 2 is on the line not point one		
-						println "P2 on line " +myEdge.getP2()									
+						//println "P2 on line " +myEdge.getP2()									
 						testerList.remove(tester);
 						testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP2()));
 						testerList.add(baseIndex++,new Edge(myEdge.getP2(),tester.getP2()));
@@ -446,7 +446,7 @@ ISlice se = new ISlice (){
 				 	if(intersectionPoint.isPresent()){
 				 		int otherBase = l
 				 		Vertex newVertex = getUnique(new Vertex(intersectionPoint.get(),tester.getP1().normal),uniquePoints)
-				 		println "Edges are crossing at point "+newVertex
+				 		//println "Edges are crossing at point "+newVertex
 						testerList.remove(tester);
 						testerList.add(baseIndex++,new Edge(tester.getP1(),newVertex));
 						testerList.add(baseIndex++,new Edge(newVertex,tester.getP2()));
