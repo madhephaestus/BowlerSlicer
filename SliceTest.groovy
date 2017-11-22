@@ -315,8 +315,8 @@ ISlice se = new ISlice (){
 						if(boundaryPath.size()>2){
 							boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
 							result.add(Polygon.fromPoints(boundaryPath));
+							println "Hanging point Polygon, adding "+boundaryPath.size()
 							boundaryPath.clear()
-							println "Last Polygon, correcting"
 						}
 					}
 				}
@@ -325,7 +325,7 @@ ISlice se = new ISlice (){
 					if(boundaryPath.get(0).equals(boundaryPath.get(boundaryPath.size()-1))){
 						Polygon p = Polygon.fromPoints(boundaryPath)
 						result.add(p);
-						//println "Path detected and added "+boundaryPath.size()
+						println "Regular polygon detected and added "+boundaryPath.size()
 						boundaryPath.clear()
 						
 					}
@@ -336,6 +336,8 @@ ISlice se = new ISlice (){
 				//println "Last Polygon, correcting"
 				boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
 				result.add(Polygon.fromPoints(boundaryPath));
+				println "Last Polygon, adding "+boundaryPath.size()
+				boundaryPath.clear()
 				boundaryPath.clear()
 			}
 			
