@@ -45,7 +45,8 @@ ISlice se = new ISlice (){
 			}
 			return true;
 		}
-		Vertex getUnique(Vertex desired, ArrayList<Vertex> uniquePoints){
+
+		Vertex existing (Vertex desired, ArrayList<Vertex> uniquePoints){
 			if(Math.abs(desired.getZ())>0.0001){
 				//println "Bad point! "+desired
 				throw new RuntimeException("Bad point!");
@@ -54,6 +55,13 @@ ISlice se = new ISlice (){
 						if(	touching(desired,existing)){
 							return 	existing;		
 						}
+			return null;
+		}
+		Vertex getUnique(Vertex desired, ArrayList<Vertex> uniquePoints){
+			Vertex exist = existing(desired,uniquePoints)
+			if(exist!= null){
+				return exist
+			}
 			uniquePoints.add(desired);
 			return desired;
 		}
@@ -108,14 +116,16 @@ ISlice se = new ISlice (){
 					//println "Point Pruned "
 				}
 			}
+			println "raw"
 			BowlerStudioController.clearCSG()
 			bc.getJfx3dmanager().clearUserNode()
 			bc.addObject((Object)rawPolygons,null)
 			ThreadUtil.wait(500)
 			 println "Begin checking edges"
+			 
 			//edges.forEach{// search the list of all edges
 			for (int k = 0; k < edges.size(); k++) {
-				println "Checking list k "+k+" of "+edges.size()
+				//println "Checking list k "+k+" of "+edges.size()
 				ArrayList<Edge> itList = edges.get(k);
 				for (int l = 0; l < itList.size(); l++) {
 					//println "Checking list l "+l+" of "+itList.size()
@@ -127,66 +137,114 @@ ISlice se = new ISlice (){
 							continue;// skip comparing to itself
 						}
 						//println "Checking list i "+i+" of "+edges.size()
-						if(fixEdgeIntersectingList(l,itList,testerList, uniquePoints)){
+						if(!fixEdgeIntersectingList(l,itList,testerList, uniquePoints)){
 							i=edges.size()
-							l-=1
+							//l=l-1
+							//println "Falling out of loop to re-search"
 						}
 					}//i for loop
 					
 				}
-				
-				
+
 			}
 			List<Polygon> fixed =  new ArrayList<>();
-					
-
+			
 			for(ArrayList<Edge> it: edges){
 				fixed.add( Edge.toPolygon(
 						Edge.toPoints(it)
 						,Plane.XY_PLANE));
-			}
-			println "Fixed edges"
+				}		
+
+			println "Fixed"
 			BowlerStudioController.clearCSG()
 			bc.getJfx3dmanager().clearUserNode()
 			bc.addObject((Object)fixed,null)
-			ThreadUtil.wait(500)
+			ThreadUtil.wait(1500)
 			//return rawPolygons
 			//return fixed
+			
 			List<Polygon> triangles  = new ArrayList<>();
 			for (int i = 0; i < fixed.size(); i++) {
+				trianglesFromPolygon(fixed.get(i),triangles, uniquePoints )
+				/*
 				eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(fixed.get(i));
 				eu.mihosoft.vrl.v3d.ext.org.poly2tri.Poly2Tri.triangulate(p);
 				List<DelaunayTriangle> t = p.getTriangles();
-				for (int j = 0; j < t.size(); j++)
-					triangles.add(t.get(j).toPolygon());
+				for (DelaunayTriangle d:t){
+					Polygon tester =d.toPolygon()
+					List<Vertex> vertices = tester.vertices;
+					boolean badPoint = false
+					for (Vertex v:vertices) {
+						if( existing (v, uniquePoints) ==null ){
+							badPoint=true;
+							println "Dumping triangle with bad point "+v
+						}
+					}
+					if(badPoint == false){
+						triangles.add(tester);
+					}
+				}
+				*/
 			}
+			//return triangles
 			println "Triangles"
 			BowlerStudioController.clearCSG()
 			bc.getJfx3dmanager().clearUserNode()
 			bc.addObject((Object)triangles,null)
-			ThreadUtil.wait(500)
+			ThreadUtil.wait(1500)
+			
 			println "Final outline"
-			List<Polygon> parts= Edge.boundaryPathsWithHoles(
+			//List<Polygon> parts= Edge.boundaryPathsWithHoles(
+	        //        	Edge.boundaryPaths(
+	         //       		Edge.boundaryEdgesOfPlaneGroup(triangles)));
+	         List<Polygon> parts= Edge.boundaryPathsWithHoles(
 	                	Edge.boundaryPaths(
-	                		Edge.boundaryEdgesOfPlaneGroup(triangles)));
+	                		Edge.boundaryEdgesOfPlaneGroup(triangles)));       		
 	          println "Returning"      		
 	          BowlerStudioController.clearCSG()
 	          bc.getJfx3dmanager().clearUserNode()
 	          bc.addObject((Object)parts,null)     		
 	          return parts    ;  		
 		}
+		void trianglesFromPolygon(Polygon tester, List<Polygon> triangles,ArrayList<Vertex>  uniquePoints ){
+			
+			List<Vector3d> vertices = Extrude.toCCW(tester.vertices.collect{it.pos});
+			List<Polygon> workingPoly = Polygon.fromConcavePoints(vertices)
+			if(vertices.size()==3){
+				add(workingPoly.get(0),triangles,uniquePoints);
+				return
+			}
+			for(Polygon newworking:workingPoly){
+				eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(newworking);
+				eu.mihosoft.vrl.v3d.ext.org.poly2tri.Poly2Tri.triangulate(p);
+				List<DelaunayTriangle> t = p.getTriangles();
+				for (DelaunayTriangle d:t){
+					Polygon testPoly =d.toPolygon()
+					add(testPoly,triangles,uniquePoints)
+				}
+			}
+		}
+		private void add(Polygon tester, List<Polygon> triangles,ArrayList<Vertex>  uniquePoints){
+			List<Vertex> vertices = tester.vertices;
+			boolean badPoint = false
+			for (Vertex v:vertices) {
+				if( existing (v, uniquePoints) ==null ){
+					badPoint=true;
+					println "Dumping triangle with bad point "+v
+				}
+			}
+			if(badPoint == false){
+				triangles.add(tester);
+			}
+		}
 		private boolean fixEdgeIntersectingList(int l,ArrayList<Edge> itList, ArrayList<Edge> testerList,ArrayList<Vertex> uniquePoints){
 			Edge myEdge = itList.get(l);
 			
 			for(int j=0;j<testerList.size();j++){
-				Thread.sleep(0,10);// force a sleep so that interruptions can be allowed
+				//Thread.sleep(0,10);// force a sleep so that interruptions can be allowed
 				Edge tester=testerList.get(j);
 				//println "Checking list j "+j+" of "+testerList.size()
-				boolean sameLine = (myEdge.getP1().pos.equals(tester.getP1().pos)&&
-									myEdge.getP2().pos.equals(tester.getP2().pos))||
-				(myEdge.getP1().pos.equals(tester.getP2().pos)&&
-				myEdge.getP2().pos.equals(tester.getP1().pos) )
-				;
+
 				boolean p1Shared = myEdge.getP1().pos.equals(tester.getP1().pos)||
 								myEdge.getP1().pos.equals(tester.getP2().pos)
 				boolean p2Shared = myEdge.getP2().pos.equals(tester.getP1().pos)||
@@ -199,7 +257,7 @@ ISlice se = new ISlice (){
 				int baseIndex = j	
 				if(	onP1&&
 						onP2){
-					println "Both points on line \n" +tester+" \n"+myEdge
+					println "Both on line \n" +myEdge.getP1()	+" "+myEdge.getP2()	
 					//sub edge lies entirely on the line
 					//make 3 new edges to deal with this
 					testerList.remove(tester);
@@ -225,7 +283,7 @@ ISlice se = new ISlice (){
 				 }// if both points are on the line
 				 else{// maybe one is on the line if both arent
 					if(onP1){	// point one is on the line segment but not p2	
-						println "P1 on line \n" +tester+" \n"+myEdge						
+						println "P1 on line " +myEdge.getP1()					
 						testerList.remove(tester);
 						testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
 						testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
@@ -233,7 +291,7 @@ ISlice se = new ISlice (){
 				
 					}						
 					if(onP2){	// point 2 is on the line not point one		
-						println "P2 on line \n" +tester+" \n"+myEdge											
+						println "P2 on line " +myEdge.getP2()									
 						testerList.remove(tester);
 						testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP2()));
 						testerList.add(baseIndex++,new Edge(myEdge.getP2(),tester.getP2()));
@@ -254,16 +312,8 @@ ISlice se = new ISlice (){
 						itList.remove(myEdge);
 						itList.add(otherBase++,new Edge(myEdge.getP1(),newVertex));
 						itList.add(otherBase++,new Edge(newVertex,myEdge.getP2()));
-						
-				 		return false;// new vertex added, search needs to start over
+				 		return false
 				 	}
-				 }
-				 
-				 
-				 if(baseIndex!=j){
-				 	println "Edges added at index "+j
-				 	//Thread.sleep(100)
-				 	//j-=1;
 				 }
 			
 			}// j for loop
@@ -298,4 +348,4 @@ Transform slicePlane = new Transform()
 //slicePlane.rotY(30)
 //slicePlane.rotX(30)
 // Get a slice
-return [Slice.slice(carrot,slicePlane, 0),carrot]
+return [Slice.slice(carrot,slicePlane, 0)]
