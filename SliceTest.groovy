@@ -112,75 +112,30 @@ ISlice se = new ISlice (){
 			bc.getJfx3dmanager().clearUserNode()
 			bc.addObject((Object)rawPolygons,null)
 			ThreadUtil.wait(500)
-			 
+			 println "Begin checking edges"
 			//edges.forEach{// search the list of all edges
 			for (int k = 0; k < edges.size(); k++) {
+				println "Checking list k "+k+" of "+edges.size()
 				ArrayList<Edge> itList = edges.get(k);
 				for (int l = 0; l < itList.size(); l++) {
-					Edge myEdge = itList.get(l);
+					//println "Checking list l "+l+" of "+itList.size()
+					//Edge myEdge = itList.get(l);
 					for(int i=0;i<edges.size();i++){// for each edge we cheack every other edge
+						
 						ArrayList<Edge> testerList = edges.get(i);
 						if(itList==testerList){
 							continue;// skip comparing to itself
 						}
-						for(int j=0;j<testerList.size();j++){
-							Edge tester=testerList.get(j);
-							boolean sameLine = (myEdge.getP1().pos.equals(tester.getP1().pos)&&
-												myEdge.getP2().pos.equals(tester.getP2().pos))||
-							(myEdge.getP1().pos.equals(tester.getP2().pos)&&
-							myEdge.getP2().pos.equals(tester.getP1().pos) )
-							;
-							boolean sharedEndPoints = 	myEdge.getP1().pos.equals(tester.getP1().pos)||
-													myEdge.getP1().pos.equals(tester.getP2().pos)||
-													myEdge.getP2().pos.equals(tester.getP1().pos)||
-													myEdge.getP2().pos.equals(tester.getP2().pos);
-							boolean onP1 = tester.contains(myEdge.getP1().pos)
-							boolean onP2 = tester.contains(myEdge.getP2().pos)
-													
-							int baseIndex = j	
-							if(	onP1&&
-									onP2){
-									//sub edge lies entirely on the line
-									//make 3 new edges to deal with this
-									testerList.remove(tester);
-									// check the relative length of points
-									// we know the path of tester is 1->2 so we interupt it in that order
-								Edge fe=new Edge(tester.getP1(),myEdge.getP1())
-								Edge se=new Edge(tester.getP1(),myEdge.getP2())
-								double lenghtFirstToFirst = length(fe);
-								double lenghtFirstToSecond = length(se);
-								if(lenghtFirstToFirst<lenghtFirstToSecond){
-									testerList.add(baseIndex++,fe);
-									testerList.add(baseIndex++,new Edge(myEdge.getP1(),myEdge.getP2()));
-									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
-								}else{
-									testerList.add(baseIndex++,se);
-									testerList.add(baseIndex++,new Edge(myEdge.getP2(),myEdge.getP1()));
-									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
-									}
-								
-								
-							 }// if both points are on the line
-							 else{// maybe one is on the line if both arent
-								if(onP1){	// point one is on the line segment but not p2							
-									testerList.remove(tester);
-									testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
-									testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
-							
-								}						
-								if(onP2){	// point 2 is on the line not point one							
-									testerList.remove(tester);
-									testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP2()));
-									testerList.add(baseIndex++,new Edge(myEdge.getP2(),tester.getP2()));
-								}
-							 }
-						
-						}// j for loop
-					}
-					//println "Checking list l "+l+" of "+itList.size()
+						//println "Checking list i "+i+" of "+edges.size()
+						if(fixEdgeIntersectingList(l,itList,testerList, uniquePoints)){
+							i=edges.size()
+							l-=1
+						}
+					}//i for loop
+					
 				}
-				Thread.sleep(0,1);// force a sleep so that interruptions can be allowed
-				println "Checking list k "+k+" of "+edges.size()
+				
+				
 			}
 			List<Polygon> fixed =  new ArrayList<>();
 					
@@ -219,6 +174,102 @@ ISlice se = new ISlice (){
 	          bc.getJfx3dmanager().clearUserNode()
 	          bc.addObject((Object)parts,null)     		
 	          return parts    ;  		
+		}
+		private boolean fixEdgeIntersectingList(int l,ArrayList<Edge> itList, ArrayList<Edge> testerList,ArrayList<Vertex> uniquePoints){
+			Edge myEdge = itList.get(l);
+			
+			for(int j=0;j<testerList.size();j++){
+				Thread.sleep(0,10);// force a sleep so that interruptions can be allowed
+				Edge tester=testerList.get(j);
+				//println "Checking list j "+j+" of "+testerList.size()
+				boolean sameLine = (myEdge.getP1().pos.equals(tester.getP1().pos)&&
+									myEdge.getP2().pos.equals(tester.getP2().pos))||
+				(myEdge.getP1().pos.equals(tester.getP2().pos)&&
+				myEdge.getP2().pos.equals(tester.getP1().pos) )
+				;
+				boolean p1Shared = myEdge.getP1().pos.equals(tester.getP1().pos)||
+								myEdge.getP1().pos.equals(tester.getP2().pos)
+				boolean p2Shared = myEdge.getP2().pos.equals(tester.getP1().pos)||
+										myEdge.getP2().pos.equals(tester.getP2().pos	)					
+				boolean sharedEndPoints = 	p1Shared||p2Shared
+									
+				boolean onP1 = tester.contains(myEdge.getP1().pos)&& !p1Shared
+				boolean onP2 = tester.contains(myEdge.getP2().pos)&& !p2Shared
+										
+				int baseIndex = j	
+				if(	onP1&&
+						onP2){
+					println "Both points on line \n" +tester+" \n"+myEdge
+					//sub edge lies entirely on the line
+					//make 3 new edges to deal with this
+					testerList.remove(tester);
+					// check the relative length of points
+					// we know the path of tester is 1->2 so we interupt it in that order
+					Edge fe=new Edge(tester.getP1(),myEdge.getP1())
+					Edge se=new Edge(tester.getP1(),myEdge.getP2())
+					double lenghtFirstToFirst = length(fe);
+					double lenghtFirstToSecond = length(se);
+					if(lenghtFirstToFirst<lenghtFirstToSecond){
+						testerList.add(baseIndex++,fe);
+						testerList.add(baseIndex++,new Edge(myEdge.getP1(),myEdge.getP2()));
+						testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
+						//return fixEdgeIntersectingList(myEdge,testerList)// recourse when edge added
+					}else{
+						testerList.add(baseIndex++,se);
+						testerList.add(baseIndex++,new Edge(myEdge.getP2(),myEdge.getP1()));
+						testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
+						//return fixEdgeIntersectingList(myEdge,testerList)// recourse when edge added
+					}
+					
+					
+				 }// if both points are on the line
+				 else{// maybe one is on the line if both arent
+					if(onP1){	// point one is on the line segment but not p2	
+						println "P1 on line \n" +tester+" \n"+myEdge						
+						testerList.remove(tester);
+						testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP1()));
+						testerList.add(baseIndex++,new Edge(myEdge.getP1(),tester.getP2()));
+						//return fixEdgeIntersectingList(myEdge,testerList)// recourse when edge added
+				
+					}						
+					if(onP2){	// point 2 is on the line not point one		
+						println "P2 on line \n" +tester+" \n"+myEdge											
+						testerList.remove(tester);
+						testerList.add(baseIndex++,new Edge(tester.getP1(),myEdge.getP2()));
+						testerList.add(baseIndex++,new Edge(myEdge.getP2(),tester.getP2()));
+						//return fixEdgeIntersectingList(myEdge,testerList)// recourse when edge added
+					}
+				 }
+				 if(!sharedEndPoints)
+				 if(!onP1 && !onP2){// if both points from the testing edge are not on the line
+				 	def intersectionPoint = tester.getIntersection(myEdge)
+				 	if(intersectionPoint.isPresent()){
+				 		int otherBase = l
+				 		Vertex newVertex = getUnique(new Vertex(intersectionPoint.get(),tester.getP1().normal),uniquePoints)
+				 		println "Edges are crossing at point "+newVertex
+						testerList.remove(tester);
+						testerList.add(baseIndex++,new Edge(tester.getP1(),newVertex));
+						testerList.add(baseIndex++,new Edge(newVertex,tester.getP2()));
+
+						itList.remove(myEdge);
+						itList.add(otherBase++,new Edge(myEdge.getP1(),newVertex));
+						itList.add(otherBase++,new Edge(newVertex,myEdge.getP2()));
+						
+				 		return false;// new vertex added, search needs to start over
+				 	}
+				 }
+				 
+				 
+				 if(baseIndex!=j){
+				 	println "Edges added at index "+j
+				 	//Thread.sleep(100)
+				 	//j-=1;
+				 }
+			
+			}// j for loop
+			
+			//println "Edge is not touching this polygon without a common point"
+			return true;
 		}
 
 	};
