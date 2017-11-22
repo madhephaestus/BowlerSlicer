@@ -6,12 +6,14 @@ import javax.vecmath.Matrix4d;
 
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.DelaunayTriangle;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+import com.neuronrobotics.bowlerstudio.threed.Line3D;
 
 
 println "Loading slicer"
 ISlice se = new ISlice (){
 		
-
+		BowlerStudioController bc = BowlerStudioController.getBowlerStudio() 
+	     //BowlerStudioController.clearCSG()
 
 		boolean touhing(Vertex point, Edge e){
 			return e.contains(point.pos);
@@ -65,8 +67,99 @@ ISlice se = new ISlice (){
 			uniquePoints.add(desired);
 			return desired;
 		}
+		boolean triangleMatchList(Polygon tester,List<Polygon> other){
+			for(Polygon p:other){
+				if(triangleMatch(tester,p)){
+					return true
+				}
+			}
+			return false
+		}
+		boolean triangleMatch(Polygon tester,Polygon other){
+			List<Edge> A = Edge.fromPolygon(tester)
+			List<Edge> B = Edge.fromPolygon(other)
+			for(int i=0;i<3;i++){
+				int i0=i
+				int i1=i+1
+				int i2=i+2
+				if(i1>2)
+					i1=i1-3
+				if(i2>2)
+					i2=i2-3	
+				//println "Testing trangle orentation "+i0+" "+i1+ " "+i2
+				if(	edgeMatch(A.get(0), B.get(i0)) &&
+					edgeMatch(A.get(1), B.get(i2)) &&
+					edgeMatch(A.get(2), B.get(i3)) 
+				){
+					println "Matching tringle found"
+					return true
+				}
+			}
+			return false
+		}
+		ArrayList<Polygon> filterDuplicateTrangles(List<Polygon> incoming){
+			ArrayList<Polygon> unique = []
+			for(Polygon tester:incoming){
+				if(!triangleMatchList(tester,unique)){
+					unique.add(tester)
+				}
+			}
+			return unique
+		}
+		boolean edgeMatch(Edge tester,Edge myEdge){
+			if((tester!=null) && (myEdge!=null)){
+				boolean p1Shared =  myEdge.getP1().pos.equals(tester.getP1().pos)&&
+								myEdge.getP2().pos.equals(tester.getP2().pos)
+				boolean p2Shared =  myEdge.getP1().pos.equals(tester.getP2().pos)&&
+								myEdge.getP2().pos.equals(tester.getP1().pos	)					
+				return p1Shared||p2Shared
+				
+			}
+			return false
+		}
+		ArrayList<Edge> uniqueOnly(ArrayList<Edge> newList){
+			ArrayList<Edge> edgesOnly = []
+			for(int i=0;i<newList.size()-1;i++){
+				Edge myEdge = newList.get(i);
+				if(myEdge!=null){
+					boolean internalEdge = false;
+					
+					for(int j=0;j<newList.size();j++){
+						if(i!=j){
+							Edge tester=newList.get(j);
+							if(tester!=null){
+								if(edgeMatch(tester,myEdge)){
+									//println "Internal Line "+myEdge+" "+tester
+									internalEdge=true;
+								}
+							}
+						}
+					}
+					if(internalEdge==false){
+						if(length(myEdge)>0.0000001)
+							edgesOnly.add(myEdge)
+						
+					}
+				}
+			}
+			return edgesOnly
+		}
 
-		
+		void addEdges(Polygon p,ArrayList<Edge> newList,ArrayList<Vertex> uniquePoints){
+			List<Vertex> vertices = p.vertices;
+			for(int i=0;i<vertices.size()-1;i++){
+				try{
+					newList.add(new Edge(getUnique(vertices.get(i),uniquePoints), getUnique(vertices.get(i+1),uniquePoints)));
+				}catch(Exception ex){
+					//println "Point Pruned "
+				}
+			}
+			try{
+				newList.add(new Edge(getUnique(vertices.get(vertices.size()-1),uniquePoints), getUnique(vertices.get(0),uniquePoints)));
+			}catch(Exception ex){
+				//println "Point Pruned "
+			}
+		}
 		/**
 		 * An interface for slicking CSG objects into lists of points that can be extruded back out
 		 * @param incoming			  Incoming CSG to be sliced
@@ -92,8 +185,7 @@ ISlice se = new ISlice (){
 					rawPolygons.add(p);
 				}
 			}
-			BowlerStudioController bc = BowlerStudioController.getBowlerStudio() 
-			BowlerStudioController.clearCSG()
+			
 			
 			//return rawPolygons
 			//return Edge.boundaryPolygonsOfPlaneGroup(rawPolygons)		
@@ -102,19 +194,7 @@ ISlice se = new ISlice (){
 			for(Polygon it: rawPolygons){
 				ArrayList<Edge> newList = new ArrayList<>();
 				edges.add(newList);
-				List<Vertex> vertices = it.vertices;
-				for(int i=0;i<vertices.size()-1;i++){
-					try{
-						newList.add(new Edge(getUnique(vertices.get(i),uniquePoints), getUnique(vertices.get(i+1),uniquePoints)));
-					}catch(Exception ex){
-						//println "Point Pruned "
-					}
-				}
-				try{
-					newList.add(new Edge(getUnique(vertices.get(vertices.size()-1),uniquePoints), getUnique(vertices.get(0),uniquePoints)));
-				}catch(Exception ex){
-					//println "Point Pruned "
-				}
+				addEdges(it,newList,uniquePoints)
 			}
 			println "raw"
 			BowlerStudioController.clearCSG()
@@ -159,52 +239,114 @@ ISlice se = new ISlice (){
 			BowlerStudioController.clearCSG()
 			bc.getJfx3dmanager().clearUserNode()
 			bc.addObject((Object)fixed,null)
-			ThreadUtil.wait(1500)
+			ThreadUtil.wait(3000)
 			//return rawPolygons
 			//return fixed
 			
-			List<Polygon> triangles  = new ArrayList<>();
-			for (int i = 0; i < fixed.size(); i++) {
-				trianglesFromPolygon(fixed.get(i),triangles, uniquePoints )
-				/*
-				eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(fixed.get(i));
-				eu.mihosoft.vrl.v3d.ext.org.poly2tri.Poly2Tri.triangulate(p);
-				List<DelaunayTriangle> t = p.getTriangles();
-				for (DelaunayTriangle d:t){
-					Polygon tester =d.toPolygon()
-					List<Vertex> vertices = tester.vertices;
-					boolean badPoint = false
-					for (Vertex v:vertices) {
-						if( existing (v, uniquePoints) ==null ){
-							badPoint=true;
-							println "Dumping triangle with bad point "+v
-						}
-					}
-					if(badPoint == false){
-						triangles.add(tester);
-					}
-				}
-				*/
+			//List<Polygon> triangles  = new ArrayList<>();
+			//for (int i = 0; i < fixed.size(); i++) {
+			//	trianglesFromPolygon(fixed.get(i),triangles, uniquePoints )
+			//}
+			//List<Polygon> trianglesFiletered = filterDuplicateTrangles(triangles)
+			//println "Started with "+triangles.size()+"triangles, filtered to "+trianglesFiletered.size()
+			ArrayList<Edge> allEdges = []
+			for(Polygon p:fixed){
+				addEdges(p,allEdges,uniquePoints)
 			}
-			//return triangles
-			println "Triangles"
+			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
+			println "Final edges = "+finalEdges.size()+" from "+allEdges.size()
+			println "Edges Filtered"
 			BowlerStudioController.clearCSG()
 			bc.getJfx3dmanager().clearUserNode()
-			bc.addObject((Object)triangles,null)
-			ThreadUtil.wait(1500)
+			//bc.addObject((Object)trianglesFiletered,null)
+			showEdges(finalEdges)
+			ThreadUtil.wait(1000)
 			
+			//return trianglesFiletered
 			println "Final outline"
 			//List<Polygon> parts= Edge.boundaryPathsWithHoles(
 	        //        	Edge.boundaryPaths(
 	         //       		Edge.boundaryEdgesOfPlaneGroup(triangles)));
-	         List<Polygon> parts= Edge.boundaryPathsWithHoles(
-	                	Edge.boundaryPaths(
-	                		Edge.boundaryEdgesOfPlaneGroup(triangles)));       		
-	          println "Returning"      		
-	          BowlerStudioController.clearCSG()
-	          bc.getJfx3dmanager().clearUserNode()
-	          bc.addObject((Object)parts,null)     		
-	          return parts    ;  		
+	         List<Polygon>boundaryPaths =  boundaryPaths(finalEdges)
+	         println "Boundary paths = "+boundaryPaths.size()
+	         List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
+		    println "Returning "  +parts.size()    		
+		    return boundaryPaths;  		
+		}
+		/**
+	     * Returns a list of all boundary paths.
+	     *
+	     * @param boundaryEdges boundary edges (all paths must be closed)
+	     * @return the list
+	     */
+	    public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
+
+			// the resulting boundary edge
+			List<Polygon> result = new ArrayList<>();
+			ArrayList<Edge> consumable = []
+			for(Edge e:boundaryEdges){
+				consumable.add(e)
+			}
+			List<Vector3d> boundaryPath = new ArrayList<>();
+			while(consumable.size()>0){
+				Edge next=null;
+				if(boundaryPath.size()==0){
+					println "Loading new path"
+					next = consumable.remove(0)
+					boundaryPath.add(next.getP1().pos)
+					boundaryPath.add(next.getP2().pos)
+				}else{
+					Vector3d v =boundaryPath.get(boundaryPath.size()-1)
+					for(int i=0;i<consumable.size() && next==null;i++){
+						Edge e = consumable.get(i)
+						if(v.equals(e.getP1().pos)){
+							consumable.remove(e)
+							boundaryPath.add(e.getP2().pos)
+							next = e
+						}else if(v.equals(e.getP2().pos)){
+							consumable.remove(e)
+							boundaryPath.add(e.getP2().pos)
+							next = e
+						}
+					}
+					if(next == null){
+						println  " equals no point! "+v
+						boundaryPath.remove(v)
+					}
+				}
+				// check to see the path closed
+				if(boundaryPath.size()>2){
+					if(boundaryPath.get(0).equals(boundaryPath.get(boundaryPath.size()-1))){
+						Polygon p = Polygon.fromPoints(boundaryPath)
+						result.add(p);
+						println "Path detected and added "+boundaryPath.size()
+						boundaryPath.clear()
+						
+					}
+				}
+				Thread.sleep(1)
+			}
+			if(boundaryPath.size()>0){
+				println "Junk Polygon, correcting"
+				boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
+				result.add(Polygon.fromPoints(boundaryPath));
+				boundaryPath.clear()
+			}
+			
+			return result;
+	    }
+		
+		ArrayList<Line3D> showEdges(ArrayList<Edge> edges){
+			javafx.scene.paint.Color color = new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1);
+			 ArrayList<Line3D> lines =[]
+			for(Edge e: edges){
+				Line3D line = new Line3D(e.getP1(),e.getP2());
+				line.setStrokeWidth(0.5);
+				line.setStroke(color);
+				lines .add(line);
+				bc.addNode(line)
+			}
+			return lines
 		}
 		void trianglesFromPolygon(Polygon tester, List<Polygon> triangles,ArrayList<Vertex>  uniquePoints ){
 			
@@ -312,6 +454,8 @@ ISlice se = new ISlice (){
 						itList.remove(myEdge);
 						itList.add(otherBase++,new Edge(myEdge.getP1(),newVertex));
 						itList.add(otherBase++,new Edge(newVertex,myEdge.getP2()));
+						//myEdge=itList.get(l);
+						//j=-1// restart loop
 				 		return false
 				 	}
 				 }
