@@ -36,16 +36,7 @@ ISlice se = new ISlice (){
 		}
 		boolean touching(Vertex p1, Vertex p2){
 			
-			if(Math.abs( p1.getX()-p2.getX())>COINCIDENCE_TOLERANCE){
-				return false;
-			}
-			if(Math.abs( p1.getY()-p2.getY())>COINCIDENCE_TOLERANCE){
-				return false;
-			}
-			if(Math.abs( p1.getZ()-p2.getZ())>COINCIDENCE_TOLERANCE){
-				return false;
-			}
-			return true;
+			return eq(p1.pos,p2.pos)
 		}
 
 		Vertex existing (Vertex desired, ArrayList<Vertex> uniquePoints){
@@ -227,16 +218,6 @@ ISlice se = new ISlice (){
 				}
 
 			}
-			List<Polygon> fixed =  new ArrayList<>();
-			
-			for(ArrayList<Edge> it: edges){
-				if(it.size()>2){
-					fixed.add( Edge.toPolygon(
-							Edge.toPoints(it)
-							,Plane.XY_PLANE));
-				}
-			}		
-
 			//println "Fixed"
 			//BowlerStudioController.clearCSG()
 			//bc.getJfx3dmanager().clearUserNode()
@@ -252,8 +233,8 @@ ISlice se = new ISlice (){
 			//List<Polygon> trianglesFiletered = filterDuplicateTrangles(triangles)
 			//println "Started with "+triangles.size()+"triangles, filtered to "+trianglesFiletered.size()
 			ArrayList<Edge> allEdges = []
-			for(Polygon p:fixed){
-				addEdges(p,allEdges,uniquePoints)
+			for(ArrayList<Edge>  p:edges){
+				allEdges.addAll(p)
 			}
 			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
 			//println "Final edges = "+finalEdges.size()+" from "+allEdges.size()
@@ -261,9 +242,9 @@ ISlice se = new ISlice (){
 			//BowlerStudioController.clearCSG()
 			//bc.getJfx3dmanager().clearUserNode()
 			//bc.addObject((Object)trianglesFiletered,null)
-			//showEdges(finalEdges)
+			showEdges(finalEdges)
 			//ThreadUtil.wait(1000)
-			
+			throw new RuntimeException()
 			//return trianglesFiletered
 			//println "Final outline"
 			//List<Polygon> parts= Edge.boundaryPathsWithHoles(
@@ -273,7 +254,7 @@ ISlice se = new ISlice (){
 	         //println "Boundary paths = "+boundaryPaths.size()
 	         List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
 		    //println "Returning "  +parts.size()    		
-		    return parts;  		
+		    return boundaryPaths;  		
 		}
 
 		boolean eq(eu.mihosoft.vrl.v3d.Vector3d v ,eu.mihosoft.vrl.v3d.Vector3d other){
@@ -288,6 +269,24 @@ ISlice se = new ISlice (){
 		        }
 		        return true;
 		}
+		Edge search(Vector3d v,ArrayList<Edge> consumable, List<eu.mihosoft.vrl.v3d.Vector3d> boundaryPath,double tollerence ){
+			double oldCooinc = COINCIDENCE_TOLERANCE
+			COINCIDENCE_TOLERANCE = tollerence 
+			Edge next=null;
+			for(int i=0;i<consumable.size() && next==null;i++){
+				Edge e = consumable.get(i)
+				if(eq(v,e.getP1().pos)){
+					consumable.remove(e)
+					boundaryPath.add(e.getP2().pos)
+					next = e
+				}else if(eq(v,e.getP2().pos)){
+					consumable.remove(e)
+					boundaryPath.add(e.getP2().pos)
+					next = e
+				}
+			}
+			return next;
+		}
 		/**
 	     * Returns a list of all boundary paths.
 	     *
@@ -295,7 +294,8 @@ ISlice se = new ISlice (){
 	     * @return the list
 	     */
 	    public  List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
-
+	    		double oldCooinc = COINCIDENCE_TOLERANCE
+			COINCIDENCE_TOLERANCE = 0.0001
 			// the resulting boundary edge
 			List<Polygon> result = new ArrayList<>();
 			ArrayList<Edge> consumable = []
@@ -312,31 +312,28 @@ ISlice se = new ISlice (){
 					boundaryPath.add(next.getP2().pos)
 				}else{
 					eu.mihosoft.vrl.v3d.Vector3d v =boundaryPath.get(boundaryPath.size()-1)
-					for(int i=0;i<consumable.size() && next==null;i++){
-						Edge e = consumable.get(i)
-						if(eq(v,e.getP1().pos)){
-							consumable.remove(e)
-							boundaryPath.add(e.getP2().pos)
-							next = e
-						}else if(eq(v,e.getP2().pos)){
-							consumable.remove(e)
-							boundaryPath.add(e.getP2().pos)
-							next = e
-						}
-					}
+					next = search(v,consumable,boundaryPath ,COINCIDENCE_TOLERANCE);
 					if(next == null){
-						//println  " equals no point! "+v
-						//boundaryPath.remove(v)
-						if(boundaryPath.size()>2){
-							boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
-							result.add(Polygon.fromPoints(boundaryPath));
-							println "Hanging point Polygon, adding "+boundaryPath.size()
-							boundaryPath.clear()
-						}else{
-							println "Hanging point wih no ploygon, rejecting "+boundaryPath.size()
-							boundaryPath.clear()
+						double i
+						for( i=COINCIDENCE_TOLERANCE;i<0.1 && next==null;i+=0.01){
+							
+							next = search(v,consumable,boundaryPath ,i);
 						}
-						
+						if(next !=null){
+							println "Widening search to "+i+" worked "
+						}else{
+							//println "search failed "+ boundaryPath.size()
+							if(boundaryPath.size()>2){
+								//println "Last Polygon, correcting"
+								boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
+								result.add(Polygon.fromPoints(boundaryPath));
+								println "Unclosed Polygon, adding "+boundaryPath.size()
+								boundaryPath.clear()
+							}else{
+								println "search failed "+ boundaryPath.size()
+								boundaryPath.clear()
+							}
+						}
 					}
 				}
 				// check to see the path closed
@@ -358,7 +355,7 @@ ISlice se = new ISlice (){
 				boundaryPath.clear()
 				
 			}
-			
+			COINCIDENCE_TOLERANCE=oldCooinc
 			return result;
 	    }
 		
@@ -524,15 +521,18 @@ def headParts  = (ArrayList<CSG> )ScriptingEngine.gitScriptRun(
 List<Polygon> allParts = []
 
 headParts.forEach{
+	try{
 		println it.getName()+" Adding parts "+allParts.size()
 		myParts = Slice.slice(it.prepForManufacturing(),slicePlane, 0)
 		BowlerStudioController
 			.getBowlerStudio() 
 			.addObject((Object)myParts,null)
 		allParts.addAll(myParts)
+	}catch(RuntimeException ex){
 		
+	}
 
 
 	}
 
-return allParts
+return null
