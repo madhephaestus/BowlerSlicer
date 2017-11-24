@@ -108,10 +108,10 @@ ISlice se = new ISlice (){
 		}
 		boolean edgeMatch(Edge tester,Edge myEdge){
 			if((tester!=null) && (myEdge!=null)){
-				boolean p1Shared =  equals(myEdge.getP1().pos,tester.getP1().pos)&&
-								equals(myEdge.getP2().pos,tester.getP2().pos)
-				boolean p2Shared =  equals(myEdge.getP1().pos,tester.getP2().pos)&&
-								equals(myEdge.getP2().pos,tester.getP1().pos	)					
+				boolean p1Shared =  eq(myEdge.getP1().pos,tester.getP1().pos)&&
+								eq(myEdge.getP2().pos,tester.getP2().pos)
+				boolean p2Shared =  eq(myEdge.getP1().pos,tester.getP2().pos)&&
+								eq(myEdge.getP2().pos,tester.getP1().pos	)					
 				return p1Shared||p2Shared
 				
 			}
@@ -230,10 +230,12 @@ ISlice se = new ISlice (){
 			List<Polygon> fixed =  new ArrayList<>();
 			
 			for(ArrayList<Edge> it: edges){
-				fixed.add( Edge.toPolygon(
-						Edge.toPoints(it)
-						,Plane.XY_PLANE));
-				}		
+				if(it.size()>2){
+					fixed.add( Edge.toPolygon(
+							Edge.toPoints(it)
+							,Plane.XY_PLANE));
+				}
+			}		
 
 			//println "Fixed"
 			//BowlerStudioController.clearCSG()
@@ -274,14 +276,14 @@ ISlice se = new ISlice (){
 		    return parts;  		
 		}
 
-		boolean equals(Vector3d v ,Vector3d other){
-		        if (abs(v.x - other.x) > 0.001) {
+		static boolean eq(eu.mihosoft.vrl.v3d.Vector3d v ,eu.mihosoft.vrl.v3d.Vector3d other){
+		        if (Math.abs(v.x - other.x) > 0.001) {
 		            return false;
 		        }
-		        if (abs(v.y - other.y) > 0.001) {
+		        if (Math.abs(v.y - other.y) > 0.001) {
 		            return false;
 		        }
-		        if (abs(v.z - other.z) > 0.001) {
+		        if (Math.abs(v.z - other.z) > 0.001) {
 		            return false;
 		        }
 		        return true;
@@ -300,7 +302,7 @@ ISlice se = new ISlice (){
 			for(Edge e:boundaryEdges){
 				consumable.add(e)
 			}
-			List<Vector3d> boundaryPath = new ArrayList<>();
+			List<eu.mihosoft.vrl.v3d.Vector3d> boundaryPath = new ArrayList<>();
 			while(consumable.size()>0){
 				Edge next=null;
 				if(boundaryPath.size()==0){
@@ -309,14 +311,14 @@ ISlice se = new ISlice (){
 					boundaryPath.add(next.getP1().pos)
 					boundaryPath.add(next.getP2().pos)
 				}else{
-					Vector3d v =boundaryPath.get(boundaryPath.size()-1)
+					eu.mihosoft.vrl.v3d.Vector3d v =boundaryPath.get(boundaryPath.size()-1)
 					for(int i=0;i<consumable.size() && next==null;i++){
 						Edge e = consumable.get(i)
-						if(equals(v,e.getP1().pos)){
+						if(eq(v,e.getP1().pos)){
 							consumable.remove(e)
 							boundaryPath.add(e.getP2().pos)
 							next = e
-						}else if(equals(v,e.getP2().pos)){
+						}else if(eq(v,e.getP2().pos)){
 							consumable.remove(e)
 							boundaryPath.add(e.getP2().pos)
 							next = e
@@ -339,10 +341,10 @@ ISlice se = new ISlice (){
 				}
 				// check to see the path closed
 				if(boundaryPath.size()>2){
-					if(equals(boundaryPath.get(0),boundaryPath.get(boundaryPath.size()-1))){
+					if(eq(boundaryPath.get(0),boundaryPath.get(boundaryPath.size()-1))){
 						Polygon p = Polygon.fromPoints(boundaryPath)
 						result.add(p);
-						println "Regular polygon detected and added "+boundaryPath.size()
+						//println "Regular polygon detected and added "+boundaryPath.size()
 						boundaryPath.clear()
 						
 					}
@@ -412,10 +414,10 @@ ISlice se = new ISlice (){
 				Edge tester=testerList.get(j);
 				//println "Checking list j "+j+" of "+testerList.size()
 
-				boolean p1Shared = equals(myEdge.getP1().pos,tester.getP1().pos)||
-								equals(myEdge.getP1().pos,tester.getP2().pos)
-				boolean p2Shared =equals( myEdge.getP2().pos,tester.getP1().pos)||
-										equals(myEdge.getP2().pos,tester.getP2().pos	)					
+				boolean p1Shared = eq(myEdge.getP1().pos,tester.getP1().pos)||
+								eq(myEdge.getP1().pos,tester.getP2().pos)
+				boolean p2Shared =eq( myEdge.getP2().pos,tester.getP1().pos)||
+										eq(myEdge.getP2().pos,tester.getP2().pos	)					
 				boolean sharedEndPoints = 	p1Shared||p2Shared
 									
 				boolean onP1 = tester.contains(myEdge.getP1().pos)&& !p1Shared
