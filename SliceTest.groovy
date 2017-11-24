@@ -510,16 +510,14 @@ def headParts  = (ArrayList<CSG> )ScriptingEngine.gitScriptRun(
 List<Polygon> allParts = []
 
 headParts.forEach{
-	try{
+	
 		myParts = Slice.slice(it.prepForManufacturing(),slicePlane, 0)
 		BowlerStudioController
 			.getBowlerStudio() 
 			.addObject((Object)myParts,null)
 		allParts.addAll(myParts)
 		println it.getName()+" Adding parts "+allParts.size()
-	}catch(Exception ex){
-		BowlerStudio.printStackTrace(ex)
-	}
+
 
 	}
 
