@@ -14,7 +14,7 @@ ISlice se = new ISlice (){
 		
 		BowlerStudioController bc = BowlerStudioController.getBowlerStudio() 
 	     //BowlerStudioController.clearCSG()
-
+		double COINCIDENCE_TOLERANCE = 0.01;
 		boolean touhing(Vertex point, Edge e){
 			return e.contains(point.pos);
 		}
@@ -35,7 +35,7 @@ ISlice se = new ISlice (){
 			return false;
 		}
 		boolean touching(Vertex p1, Vertex p2){
-			double COINCIDENCE_TOLERANCE = 0.001;
+			
 			if(Math.abs( p1.getX()-p2.getX())>COINCIDENCE_TOLERANCE){
 				return false;
 			}
@@ -49,7 +49,7 @@ ISlice se = new ISlice (){
 		}
 
 		Vertex existing (Vertex desired, ArrayList<Vertex> uniquePoints){
-			if(Math.abs(desired.getZ())>0.0001){
+			if(Math.abs(desired.getZ())>COINCIDENCE_TOLERANCE){
 				//println "Bad point! "+desired
 				throw new RuntimeException("Bad point!");
 			}
@@ -136,7 +136,7 @@ ISlice se = new ISlice (){
 						}
 					}
 					if(internalEdge==false){
-						if(length(myEdge)>Plane.EPSILON)
+						if(length(myEdge)>COINCIDENCE_TOLERANCE)
 							edgesOnly.add(myEdge)
 						
 					}
@@ -276,14 +276,14 @@ ISlice se = new ISlice (){
 		    return parts;  		
 		}
 
-		static boolean eq(eu.mihosoft.vrl.v3d.Vector3d v ,eu.mihosoft.vrl.v3d.Vector3d other){
-		        if (Math.abs(v.x - other.x) > 0.001) {
+		boolean eq(eu.mihosoft.vrl.v3d.Vector3d v ,eu.mihosoft.vrl.v3d.Vector3d other){
+		        if (Math.abs(v.x - other.x) > COINCIDENCE_TOLERANCE) {
 		            return false;
 		        }
-		        if (Math.abs(v.y - other.y) > 0.001) {
+		        if (Math.abs(v.y - other.y) >COINCIDENCE_TOLERANCE) {
 		            return false;
 		        }
-		        if (Math.abs(v.z - other.z) > 0.001) {
+		        if (Math.abs(v.z - other.z) > COINCIDENCE_TOLERANCE) {
 		            return false;
 		        }
 		        return true;
@@ -294,7 +294,7 @@ ISlice se = new ISlice (){
 	     * @param boundaryEdges boundary edges (all paths must be closed)
 	     * @return the list
 	     */
-	    public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
+	    public  List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
 
 			// the resulting boundary edge
 			List<Polygon> result = new ArrayList<>();
@@ -346,7 +346,6 @@ ISlice se = new ISlice (){
 						result.add(p);
 						//println "Regular polygon detected and added "+boundaryPath.size()
 						boundaryPath.clear()
-						
 					}
 				}
 				Thread.sleep(1)
@@ -357,7 +356,7 @@ ISlice se = new ISlice (){
 				result.add(Polygon.fromPoints(boundaryPath));
 				println "Last Polygon, adding "+boundaryPath.size()
 				boundaryPath.clear()
-				boundaryPath.clear()
+				
 			}
 			
 			return result;
