@@ -108,10 +108,10 @@ ISlice se = new ISlice (){
 		}
 		boolean edgeMatch(Edge tester,Edge myEdge){
 			if((tester!=null) && (myEdge!=null)){
-				boolean p1Shared =  myEdge.getP1().pos.equals(tester.getP1().pos)&&
-								myEdge.getP2().pos.equals(tester.getP2().pos)
-				boolean p2Shared =  myEdge.getP1().pos.equals(tester.getP2().pos)&&
-								myEdge.getP2().pos.equals(tester.getP1().pos	)					
+				boolean p1Shared =  equals(myEdge.getP1().pos,tester.getP1().pos)&&
+								equals(myEdge.getP2().pos,tester.getP2().pos)
+				boolean p2Shared =  equals(myEdge.getP1().pos,tester.getP2().pos)&&
+								equals(myEdge.getP2().pos,tester.getP1().pos	)					
 				return p1Shared||p2Shared
 				
 			}
@@ -273,6 +273,19 @@ ISlice se = new ISlice (){
 		    //println "Returning "  +parts.size()    		
 		    return parts;  		
 		}
+
+		boolean equals(Vector3d v ,Vector3d other){
+		        if (abs(v.x - other.x) > 0.001) {
+		            return false;
+		        }
+		        if (abs(v.y - other.y) > 0.001) {
+		            return false;
+		        }
+		        if (abs(v.z - other.z) > 0.001) {
+		            return false;
+		        }
+		        return true;
+		}
 		/**
 	     * Returns a list of all boundary paths.
 	     *
@@ -299,11 +312,11 @@ ISlice se = new ISlice (){
 					Vector3d v =boundaryPath.get(boundaryPath.size()-1)
 					for(int i=0;i<consumable.size() && next==null;i++){
 						Edge e = consumable.get(i)
-						if(v.equals(e.getP1().pos)){
+						if(equals(v,e.getP1().pos)){
 							consumable.remove(e)
 							boundaryPath.add(e.getP2().pos)
 							next = e
-						}else if(v.equals(e.getP2().pos)){
+						}else if(equals(v,e.getP2().pos)){
 							consumable.remove(e)
 							boundaryPath.add(e.getP2().pos)
 							next = e
@@ -326,7 +339,7 @@ ISlice se = new ISlice (){
 				}
 				// check to see the path closed
 				if(boundaryPath.size()>2){
-					if(boundaryPath.get(0).equals(boundaryPath.get(boundaryPath.size()-1))){
+					if(equals(boundaryPath.get(0),boundaryPath.get(boundaryPath.size()-1))){
 						Polygon p = Polygon.fromPoints(boundaryPath)
 						result.add(p);
 						println "Regular polygon detected and added "+boundaryPath.size()
@@ -399,10 +412,10 @@ ISlice se = new ISlice (){
 				Edge tester=testerList.get(j);
 				//println "Checking list j "+j+" of "+testerList.size()
 
-				boolean p1Shared = myEdge.getP1().pos.equals(tester.getP1().pos)||
-								myEdge.getP1().pos.equals(tester.getP2().pos)
-				boolean p2Shared = myEdge.getP2().pos.equals(tester.getP1().pos)||
-										myEdge.getP2().pos.equals(tester.getP2().pos	)					
+				boolean p1Shared = equals(myEdge.getP1().pos,tester.getP1().pos)||
+								equals(myEdge.getP1().pos,tester.getP2().pos)
+				boolean p2Shared =equals( myEdge.getP2().pos,tester.getP1().pos)||
+										equals(myEdge.getP2().pos,tester.getP2().pos	)					
 				boolean sharedEndPoints = 	p1Shared||p2Shared
 									
 				boolean onP1 = tester.contains(myEdge.getP1().pos)&& !p1Shared
@@ -510,13 +523,13 @@ def headParts  = (ArrayList<CSG> )ScriptingEngine.gitScriptRun(
 List<Polygon> allParts = []
 
 headParts.forEach{
-	
+		println it.getName()+" Adding parts "+allParts.size()
 		myParts = Slice.slice(it.prepForManufacturing(),slicePlane, 0)
 		BowlerStudioController
 			.getBowlerStudio() 
 			.addObject((Object)myParts,null)
 		allParts.addAll(myParts)
-		println it.getName()+" Adding parts "+allParts.size()
+		
 
 
 	}
