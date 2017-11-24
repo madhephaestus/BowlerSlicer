@@ -317,7 +317,11 @@ ISlice se = new ISlice (){
 							result.add(Polygon.fromPoints(boundaryPath));
 							println "Hanging point Polygon, adding "+boundaryPath.size()
 							boundaryPath.clear()
+						}else{
+							println "Hanging point wih no ploygon, rejecting "+boundaryPath.size()
+							boundaryPath.clear()
 						}
+						
 					}
 				}
 				// check to see the path closed
@@ -499,7 +503,24 @@ CSG carrot = new Cylinder(100,  10)
 	//.rotx(30)
 	
 Transform slicePlane = new Transform()
-//slicePlane.rotY(30)
-//slicePlane.rotX(30)
-// Get a slice
-return [Slice.slice(carrot,slicePlane, 0)]
+def headParts  = (ArrayList<CSG> )ScriptingEngine.gitScriptRun(
+	"https://github.com/madhephaestus/ParametricAnimatronics.git", 
+	"AnimatronicHead.groovy" ,  
+	[false] )
+List<Polygon> allParts = []
+
+headParts.forEach{
+	try{
+		myParts = Slice.slice(it.prepForManufacturing(),slicePlane, 0)
+		BowlerStudioController
+			.getBowlerStudio() 
+			.addObject((Object)myParts,null)
+		allParts.addAll(myParts)
+		println it.getName()+" Adding parts "+allParts.size()
+	}catch(Exception ex){
+		BowlerStudio.printStackTrace(ex)
+	}
+
+	}
+
+return allParts
