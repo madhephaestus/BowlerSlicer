@@ -11,7 +11,8 @@ import com.neuronrobotics.bowlerstudio.threed.Line3D;
 
 println "Loading slicer"
 ISlice se = new ISlice (){
-		
+		ArrayList<Vertex> uniquePoints = new ArrayList<>();
+		ArrayList<ArrayList<Edge>> edges = new ArrayList<>();
 		BowlerStudioController bc = BowlerStudioController.getBowlerStudio() 
 	     //BowlerStudioController.clearCSG()
 		double COINCIDENCE_TOLERANCE = 0.0001;
@@ -39,7 +40,7 @@ ISlice se = new ISlice (){
 			return eq(p1.pos,p2.pos)
 		}
 
-		Vertex existing (Vertex desired, ArrayList<Vertex> uniquePoints){
+		Vertex existing (Vertex desired){
 			if(Math.abs(desired.getZ())>COINCIDENCE_TOLERANCE){
 				//println "Bad point! "+desired
 				throw new RuntimeException("Bad point!");
@@ -50,14 +51,15 @@ ISlice se = new ISlice (){
 						}
 			return null;
 		}
-		Vertex getUnique(Vertex desired, ArrayList<Vertex> uniquePoints){
-			Vertex exist = existing(desired,uniquePoints)
+		Vertex getUnique(Vertex desired){
+			Vertex exist = existing(desired)
 			if(exist!= null){
 				return exist
 			}
 			uniquePoints.add(desired);
 			return desired;
 		}
+		
 		boolean triangleMatchList(Polygon tester,List<Polygon> other){
 			for(Polygon p:other){
 				if(triangleMatch(tester,p)){
@@ -138,17 +140,17 @@ ISlice se = new ISlice (){
 			return edgesOnly
 		}
 
-		void addEdges(Polygon p,ArrayList<Edge> newList,ArrayList<Vertex> uniquePoints){
+		void addEdges(Polygon p,ArrayList<Edge> newList){
 			List<Vertex> vertices = p.vertices;
 			for(int i=0;i<vertices.size()-1;i++){
 				try{
-					newList.add(new Edge(getUnique(vertices.get(i),uniquePoints), getUnique(vertices.get(i+1),uniquePoints)));
+					newList.add(new Edge(getUnique(vertices.get(i) ), getUnique(vertices.get(i+1) )));
 				}catch(Exception ex){
 					//println "Point Pruned "
 				}
 			}
 			try{
-				newList.add(new Edge(getUnique(vertices.get(vertices.size()-1),uniquePoints), getUnique(vertices.get(0),uniquePoints)));
+				newList.add(new Edge(getUnique(vertices.get(vertices.size()-1) ), getUnique(vertices.get(0) )));
 			}catch(Exception ex){
 				//println "Point Pruned "
 			}
@@ -162,7 +164,8 @@ ISlice se = new ISlice (){
 		 */
 		public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance){
 			//println "Groovy Slicing engine"
-			
+			uniquePoints.clear()
+			edges .clear()
 			List<Polygon> rawPolygons = new ArrayList<>();
 
 			// Actual slice plane
@@ -191,12 +194,11 @@ ISlice se = new ISlice (){
 			//println "Started with "+triangles.size()+"triangles, filtered to "+trianglesFiletered.size()
 			//return triangles
 
-			ArrayList<Vertex> uniquePoints = new ArrayList<>();
-			ArrayList<ArrayList<Edge>> edges = new ArrayList<>();
+			
 			for(Polygon it: triangles){
 				ArrayList<Edge> newList = new ArrayList<>();
 				edges.add(newList);
-				addEdges(it,newList,uniquePoints)
+				addEdges(it,newList)
 			}
 			//println "raw"
 			//BowlerStudioController.clearCSG()
@@ -219,7 +221,7 @@ ISlice se = new ISlice (){
 							continue;// skip comparing to itself
 						}
 						//println "Checking list i "+i+" of "+edges.size()
-						if(!fixEdgeIntersectingList(l,itList,testerList, uniquePoints)){
+						if(!fixEdgeIntersectingList(l,itList,testerList)){
 							i=edges.size()
 							//l=l-1
 							//println "Falling out of loop to re-search"
@@ -538,7 +540,7 @@ ISlice se = new ISlice (){
 				}
 			}
 		}
-		private void add(Polygon tester, List<Polygon> triangles,ArrayList<Vertex>  uniquePoints){
+		private void add(Polygon tester, List<Polygon> triangles){
 			List<Vertex> vertices = tester.vertices;
 			boolean badPoint = false
 			if(uniquePoints!=null)
@@ -552,7 +554,7 @@ ISlice se = new ISlice (){
 				triangles.add(tester);
 			}
 		}
-		private boolean fixEdgeIntersectingList(int l,ArrayList<Edge> itList, ArrayList<Edge> testerList,ArrayList<Vertex> uniquePoints){
+		private boolean fixEdgeIntersectingList(int l,ArrayList<Edge> itList, ArrayList<Edge> testerList){
 			Edge myEdge = itList.get(l);
 			
 			for(int j=0;j<testerList.size();j++){
@@ -618,7 +620,7 @@ ISlice se = new ISlice (){
 				 	def intersectionPoint = tester.getIntersection(myEdge)
 				 	if(intersectionPoint.isPresent()){
 				 		int otherBase = l
-				 		Vertex newVertex = getUnique(new Vertex(intersectionPoint.get(),tester.getP1().normal),uniquePoints)
+				 		Vertex newVertex = getUnique(new Vertex(intersectionPoint.get(),tester.getP1().normal) )
 				 		//println "Edges are crossing at point "+newVertex
 						testerList.remove(tester);
 						testerList.add(baseIndex++,new Edge(tester.getP1(),newVertex));
