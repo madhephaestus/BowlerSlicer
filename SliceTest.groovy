@@ -115,9 +115,9 @@ ISlice se = new ISlice (){
 				if(myEdge!=null){
 					boolean internalEdge = false;
 					
-					for(int j=0;j<edgesOnly.size();j++){
+					for(int j=0;j<newList.size();j++){
 						if(i!=j){
-							Edge tester=edgesOnly.get(j);
+							Edge tester=newList.get(j);
 							if(tester!=null){
 								if(edgeMatch(tester,myEdge)){
 									//println "Internal Line "+myEdge+" "+tester
@@ -302,6 +302,9 @@ ISlice se = new ISlice (){
 			                          -v.x + next.x)+Math.PI;
 			
 			double val= angle2-angle1;
+			if(val<-Math.toRadians(165)){
+				//val+=(Math.PI*2)
+			}
 			println Math.toDegrees(val)+" = "+Math.toDegrees(angle2)+" - "+Math.toDegrees(angle1)
 			return val
 		}
@@ -344,7 +347,7 @@ ISlice se = new ISlice (){
 			showEdges(map,15,javafx.scene.paint.Color.RED)
 			showEdges([best],25,javafx.scene.paint.Color.GREEN)
 			println "Best = "+angles.get(best)
-			Thread.sleep(5000)
+			Thread.sleep(1000)
 			return best
 		}
 		Edge search(ArrayList<Edge> consumable, List<eu.mihosoft.vrl.v3d.Vector3d> boundaryPath ){
@@ -510,7 +513,7 @@ ISlice se = new ISlice (){
 				p1 = new Vector3d(e.getP1().x,e.getP1().y,z)
 				p2 = new Vector3d(e.getP2().x,e.getP2().y,z)
 				Line3D line = new Line3D(p1,p2);
-				line.setStrokeWidth(0.1);
+				line.setStrokeWidth(0.8);
 				line.setStroke(color);
 				lines .add(line);
 				bc.addNode(line)
@@ -649,7 +652,7 @@ CSG carrot = new Cylinder(100,  10)
 .difference(
 	[new Cylinder(40, 100)
 	.toCSG()
-	.movex(75)
+	//.movex(75)
 	,
 	pin.movex(60),
 	pin.movex(-60),
