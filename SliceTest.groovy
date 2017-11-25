@@ -14,7 +14,7 @@ ISlice se = new ISlice (){
 		
 		BowlerStudioController bc = BowlerStudioController.getBowlerStudio() 
 	     //BowlerStudioController.clearCSG()
-		double COINCIDENCE_TOLERANCE = 0.01;
+		double COINCIDENCE_TOLERANCE = 0.0001;
 		boolean touhing(Vertex point, Edge e){
 			return e.contains(point.pos);
 		}
@@ -298,8 +298,8 @@ ISlice se = new ISlice (){
 			if(vMinusOne!=null)
 				angle1 = Math.atan2(vMinusOne.y - v.y,
                                	       vMinusOne.x - v.x);
-		    double angle2 = Math.atan2(v.y - next.y,
-		                               v.x -next.x);
+		    double angle2 = Math.atan2(-v.y + next.y,
+		                               -v.x + next.x);
 		    
 		   double val= angle1-angle2;
 	
@@ -442,6 +442,7 @@ ISlice se = new ISlice (){
 					consumable.remove(next)
 					println "Starting vector for polygon = "+next
 					showEdges([next],20,javafx.scene.paint.Color.GREEN)
+					showEdges(map,15,javafx.scene.paint.Color.RED)
 					Thread.sleep(2000)
 				}
 				else{
