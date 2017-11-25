@@ -110,7 +110,7 @@ ISlice se = new ISlice (){
 		}
 		ArrayList<Edge> uniqueOnly(ArrayList<Edge> newList){
 			ArrayList<Edge> edgesOnly = []
-			for(int i=0;i<newList.size()-1;i++){
+			for(int i=0;i<newList.size();i++){
 				Edge myEdge = newList.get(i);
 				if(myEdge!=null){
 					boolean internalEdge = false;
@@ -127,8 +127,9 @@ ISlice se = new ISlice (){
 						}
 					}
 					if(internalEdge==false){
-						if(length(myEdge)>COINCIDENCE_TOLERANCE)
+						if(length(myEdge)>COINCIDENCE_TOLERANCE){
 							edgesOnly.add(myEdge)
+						}
 						
 					}
 				}
@@ -178,11 +179,20 @@ ISlice se = new ISlice (){
 			}
 			
 			
-			//return rawPolygons
 			//return Edge.boundaryPolygonsOfPlaneGroup(rawPolygons)		
+			
+			
+			List<Polygon> triangles  = new ArrayList<>();
+			for (int i = 0; i < rawPolygons.size(); i++) {
+				trianglesFromPolygon(rawPolygons.get(i),triangles )
+			}
+			//List<Polygon> trianglesFiletered = filterDuplicateTrangles(triangles)
+			//println "Started with "+triangles.size()+"triangles, filtered to "+trianglesFiletered.size()
+			//return triangles
+
 			ArrayList<Vertex> uniquePoints = new ArrayList<>();
 			ArrayList<ArrayList<Edge>> edges = new ArrayList<>();
-			for(Polygon it: rawPolygons){
+			for(Polygon it: triangles){
 				ArrayList<Edge> newList = new ArrayList<>();
 				edges.add(newList);
 				addEdges(it,newList,uniquePoints)
@@ -218,6 +228,17 @@ ISlice se = new ISlice (){
 				}
 
 			}
+			/*
+			List<Polygon> fixed =  new ArrayList<>();		
+-					
+-			for(ArrayList<Edge> it: edges){		
+-				if(it.size()>2){		
+-					fixed.add( Edge.toPolygon(		
+-							Edge.toPoints(it)		
+-							,Plane.XY_PLANE));		
+-				}		
+-			}		
+			*/
 			//println "Fixed"
 			//BowlerStudioController.clearCSG()
 			//bc.getJfx3dmanager().clearUserNode()
@@ -230,21 +251,22 @@ ISlice se = new ISlice (){
 			//for (int i = 0; i < fixed.size(); i++) {
 			//	trianglesFromPolygon(fixed.get(i),triangles, uniquePoints )
 			//}
-			//List<Polygon> trianglesFiletered = filterDuplicateTrangles(triangles)
-			//println "Started with "+triangles.size()+"triangles, filtered to "+trianglesFiletered.size()
+			
+			
 			ArrayList<Edge> allEdges = []
 			for(ArrayList<Edge>  p:edges){
 				allEdges.addAll(p)
 			}
 			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
-			//println "Final edges = "+finalEdges.size()+" from "+allEdges.size()
+			println "Final edges = "+finalEdges.size()+" from "+allEdges.size()
 			//println "Edges Filtered"
 			//BowlerStudioController.clearCSG()
 			//bc.getJfx3dmanager().clearUserNode()
 			//bc.addObject((Object)trianglesFiletered,null)
-			showEdges(finalEdges)
-			//ThreadUtil.wait(1000)
-			throw new RuntimeException()
+			javafx.scene.paint.Color color = new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1);
+			showEdges(finalEdges,-5,color)
+			
+			//throw new RuntimeException()
 			//return trianglesFiletered
 			//println "Final outline"
 			//List<Polygon> parts= Edge.boundaryPathsWithHoles(
@@ -269,23 +291,77 @@ ISlice se = new ISlice (){
 		        }
 		        return true;
 		}
-		Edge search(Vector3d v,ArrayList<Edge> consumable, List<eu.mihosoft.vrl.v3d.Vector3d> boundaryPath,double tollerence ){
-			double oldCooinc = COINCIDENCE_TOLERANCE
-			COINCIDENCE_TOLERANCE = tollerence 
-			Edge next=null;
-			for(int i=0;i<consumable.size() && next==null;i++){
-				Edge e = consumable.get(i)
-				if(eq(v,e.getP1().pos)){
-					consumable.remove(e)
-					boundaryPath.add(e.getP2().pos)
-					next = e
-				}else if(eq(v,e.getP2().pos)){
-					consumable.remove(e)
-					boundaryPath.add(e.getP2().pos)
-					next = e
+		
+		double angleBetween(Vector3d v,Vector3d vMinusOne,Vector3d next){
+			
+			double angle1 = 0
+			if(vMinusOne!=null)
+				angle1 = Math.atan2(vMinusOne.y - v.y,
+                               	       vMinusOne.x - v.x);
+		    double angle2 = Math.atan2(v.y - next.y,
+		                               v.x -next.x);
+		    
+		   double val= angle1-angle2;
+	
+		   return val
+		}
+		Edge findEdgesWithPoint(Vector3d v,Vector3d vMinusOne,ArrayList<Edge> consumable){
+			
+			double currentSmalestAngle =Math.PI*2
+			ArrayList<Edge> map=[]
+			HashMap<Double,Edge> angles=[]
+			for(Edge e:consumable){
+				if(eq(v,e.getP1().pos) ){
+				    map.add(e)
+				    
+				    angles.put(e,Math.toDegrees(angleBetween(v,vMinusOne,e.getP2().pos)))
+  
+				}else if(eq(v,e.getP2().pos) ){
+				    map.add(e)
+				    angles.put(e,Math.toDegrees(angleBetween(v,vMinusOne,e.getP1().pos)))
+  
 				}
 			}
-			return next;
+			if(map.size()==0)
+				return null
+			if(map.size()==1){
+				showEdges(map,25,javafx.scene.paint.Color.GREEN)
+				return map.get(0)
+			}
+			println "Possible paths "+angles.values()
+			double smallest =361
+			Edge best = null
+			for(Edge e:map){
+				double angle = angles.get(e)
+				
+				if(angle<smallest){
+					smallest=angle
+					best=e;
+				}
+					
+			}
+			map.remove(best)
+			showEdges(map,15,javafx.scene.paint.Color.RED)
+			showEdges([best],25,javafx.scene.paint.Color.GREEN)
+			println "Best = "+angles.get(best)
+			Thread.sleep(5000)
+			return best
+		}
+		Edge search(ArrayList<Edge> consumable, List<eu.mihosoft.vrl.v3d.Vector3d> boundaryPath ){
+			eu.mihosoft.vrl.v3d.Vector3d v =boundaryPath.get(boundaryPath.size()-1)
+			eu.mihosoft.vrl.v3d.Vector3d vMinusOne=null
+			if(boundaryPath.size()>1)
+				vMinusOne =boundaryPath.get(boundaryPath.size()-2)
+				
+			Edge found =  findEdgesWithPoint(v,vMinusOne,consumable);
+			if(found != null){
+				 if(eq(v,found.getP1().pos) ){
+				 	boundaryPath.add(found.getP2().pos)
+				 }else{
+				 	boundaryPath.add(found.getP1().pos)
+				 }
+			}
+			return found
 		}
 		/**
 	     * Returns a list of all boundary paths.
@@ -307,18 +383,71 @@ ISlice se = new ISlice (){
 				Edge next=null;
 				if(boundaryPath.size()==0){
 					//println "Loading new path"
-					next = consumable.remove(0)
-					boundaryPath.add(next.getP1().pos)
-					boundaryPath.add(next.getP2().pos)
+					double distance = 0
+					Vector3d v=null
+					for(Edge e:consumable){
+						p1dist = Math.sqrt(
+							Math.pow(e.getP1().x,2)+
+							Math.pow(e.getP1().y,2)
+							)
+						p2dist = Math.sqrt(
+							Math.pow(e.getP1().x,2)+
+							Math.pow(e.getP1().y,2)
+							)
+						if(p1dist>distance){
+							distance=p1dist
+							v=(e.getP1().pos)
+						}
+						if(p2dist>distance){
+							distance=p1dist
+							v=(e.getP2().pos)
+						}
+					}
+					boundaryPath.add(v)
+					ArrayList<Edge> map=[]
+					for(Edge e:consumable){
+						if(eq(v,e.getP1().pos) ){
+						    map.add(e)
+		  
+						}else if(eq(v,e.getP2().pos) ){
+						    map.add(e)
+		  
+						}
+					}
+					distance = 0
+					v=null
+					for(Edge e:map){
+						p1dist = Math.sqrt(
+							Math.pow(e.getP1().x,2)+
+							Math.pow(e.getP1().y,2)
+							)
+						p2dist = Math.sqrt(
+							Math.pow(e.getP1().x,2)+
+							Math.pow(e.getP1().y,2)
+							)
+						if(p1dist>distance){
+							distance=p1dist
+							v=(e.getP1().pos)
+						}
+						if(p2dist>distance){
+							distance=p1dist
+							v=(e.getP2().pos)
+						}
+					}
+					boundaryPath.add(v)
+					
 				}else{
-					eu.mihosoft.vrl.v3d.Vector3d v =boundaryPath.get(boundaryPath.size()-1)
-					next = search(v,consumable,boundaryPath ,COINCIDENCE_TOLERANCE);
+					
+					next = search(consumable,boundaryPath );
+					
 					if(next == null){
 						double i
-						for( i=COINCIDENCE_TOLERANCE;i<0.1 && next==null;i+=0.01){
+						/*
+						for( i=COINCIDENCE_TOLERANCE;i<1&& next==null;i+=0.1){
 							
-							next = search(v,consumable,boundaryPath ,i);
+							next = search(consumable,boundaryPath ,i);
 						}
+						*/
 						if(next !=null){
 							println "Widening search to "+i+" worked "
 						}else{
@@ -335,13 +464,17 @@ ISlice se = new ISlice (){
 							}
 						}
 					}
+					
+					if(next!=null){
+						consumable.remove(next)
+					}
 				}
 				// check to see the path closed
 				if(boundaryPath.size()>2){
 					if(eq(boundaryPath.get(0),boundaryPath.get(boundaryPath.size()-1))){
 						Polygon p = Polygon.fromPoints(boundaryPath)
 						result.add(p);
-						//println "Regular polygon detected and added "+boundaryPath.size()
+						println "Regular polygon detected and added "+boundaryPath.size()
 						boundaryPath.clear()
 					}
 				}
@@ -359,24 +492,28 @@ ISlice se = new ISlice (){
 			return result;
 	    }
 		
-		ArrayList<Line3D> showEdges(ArrayList<Edge> edges){
-			javafx.scene.paint.Color color = new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1);
+		ArrayList<Line3D> showEdges(ArrayList<Edge> edges,double offset, javafx.scene.paint.Color color ){
+			
 			 ArrayList<Line3D> lines =[]
 			for(Edge e: edges){
-				Line3D line = new Line3D(e.getP1(),e.getP2());
-				line.setStrokeWidth(0.5);
+				
+				double z=offset
+				p1 = new Vector3d(e.getP1().x,e.getP1().y,z)
+				p2 = new Vector3d(e.getP2().x,e.getP2().y,z)
+				Line3D line = new Line3D(p1,p2);
+				line.setStrokeWidth(Math.random()*0.5+0.5);
 				line.setStroke(color);
 				lines .add(line);
 				bc.addNode(line)
 			}
 			return lines
 		}
-		void trianglesFromPolygon(Polygon tester, List<Polygon> triangles,ArrayList<Vertex>  uniquePoints ){
+		void trianglesFromPolygon(Polygon tester, List<Polygon> triangles ){
 			
 			List<Vector3d> vertices = Extrude.toCCW(tester.vertices.collect{it.pos});
 			List<Polygon> workingPoly = Polygon.fromConcavePoints(vertices)
 			if(vertices.size()==3){
-				add(workingPoly.get(0),triangles,uniquePoints);
+				add(workingPoly.get(0),triangles,null);
 				return
 			}
 			for(Polygon newworking:workingPoly){
@@ -385,19 +522,20 @@ ISlice se = new ISlice (){
 				List<DelaunayTriangle> t = p.getTriangles();
 				for (DelaunayTriangle d:t){
 					Polygon testPoly =d.toPolygon()
-					add(testPoly,triangles,uniquePoints)
+					add(testPoly,triangles,null)
 				}
 			}
 		}
 		private void add(Polygon tester, List<Polygon> triangles,ArrayList<Vertex>  uniquePoints){
 			List<Vertex> vertices = tester.vertices;
 			boolean badPoint = false
-			for (Vertex v:vertices) {
-				if( existing (v, uniquePoints) ==null ){
-					badPoint=true;
-					println "Dumping triangle with bad point "+v
+			if(uniquePoints!=null)
+				for (Vertex v:vertices) {
+					if( existing (v, uniquePoints) ==null ){
+						badPoint=true;
+						println "Dumping triangle with bad point "+v
+					}
 				}
-			}
 			if(badPoint == false){
 				triangles.add(tester);
 			}
@@ -514,6 +652,9 @@ CSG carrot = new Cylinder(100,  10)
 	//.rotx(30)
 	
 Transform slicePlane = new Transform()
+
+return [Slice.slice(carrot.prepForManufacturing(),slicePlane, 0)]
+
 def headParts  = (ArrayList<CSG> )ScriptingEngine.gitScriptRun(
 	"https://github.com/madhephaestus/ParametricAnimatronics.git", 
 	"AnimatronicHead.groovy" ,  
@@ -529,10 +670,10 @@ headParts.forEach{
 			.addObject((Object)myParts,null)
 		allParts.addAll(myParts)
 	}catch(RuntimeException ex){
-		
+		ex.printStackTrace()
 	}
 
 
 	}
 
-return null
+return allParts
