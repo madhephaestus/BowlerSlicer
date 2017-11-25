@@ -297,13 +297,13 @@ ISlice se = new ISlice (){
 			double angle1 = 0
 			if(vMinusOne!=null)
 				angle1 = Math.atan2(vMinusOne.y - v.y,
-                               	       vMinusOne.x - v.x);
-		    double angle2 = Math.atan2(-v.y + next.y,
-		                               -v.x + next.x);
-		    
-		   double val= angle1-angle2;
-	
-		   return val
+			                	       vMinusOne.x - v.x)+Math.PI;
+			double angle2 = Math.atan2(-v.y + next.y,
+			                          -v.x + next.x)+Math.PI;
+			
+			double val= angle2-angle1;
+			println Math.toDegrees(val)+" = "+Math.toDegrees(angle2)+" - "+Math.toDegrees(angle1)
+			return val
 		}
 		Edge findEdgesWithPoint(Vector3d v,Vector3d vMinusOne,ArrayList<Edge> consumable){
 			
@@ -506,11 +506,11 @@ ISlice se = new ISlice (){
 			 ArrayList<Line3D> lines =[]
 			for(Edge e: edges){
 				
-				double z=offset+Math.random()*2+1
+				double z=offset
 				p1 = new Vector3d(e.getP1().x,e.getP1().y,z)
 				p2 = new Vector3d(e.getP2().x,e.getP2().y,z)
 				Line3D line = new Line3D(p1,p2);
-				line.setStrokeWidth(Math.random()*0.5+0.5);
+				line.setStrokeWidth(0.1);
 				line.setStroke(color);
 				lines .add(line);
 				bc.addNode(line)
