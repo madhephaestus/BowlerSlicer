@@ -115,9 +115,9 @@ ISlice se = new ISlice (){
 				if(myEdge!=null){
 					boolean internalEdge = false;
 					
-					for(int j=0;j<newList.size();j++){
+					for(int j=0;j<edgesOnly.size();j++){
 						if(i!=j){
-							Edge tester=newList.get(j);
+							Edge tester=edgesOnly.get(j);
 							if(tester!=null){
 								if(edgeMatch(tester,myEdge)){
 									//println "Internal Line "+myEdge+" "+tester
@@ -126,6 +126,7 @@ ISlice se = new ISlice (){
 							}
 						}
 					}
+					
 					if(internalEdge==false){
 						if(length(myEdge)>COINCIDENCE_TOLERANCE){
 							edgesOnly.add(myEdge)
@@ -271,7 +272,7 @@ ISlice se = new ISlice (){
 			//List<Polygon> parts= Edge.boundaryPathsWithHoles(
 	        //        	Edge.boundaryPaths(
 	         //       		Edge.boundaryEdgesOfPlaneGroup(triangles)));
-	         List<Polygon>boundaryPaths =  boundaryPaths(allEdges)
+	         List<Polygon>boundaryPaths =  boundaryPaths(finalEdges)
 	         //println "Boundary paths = "+boundaryPaths.size()
 	         //List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
 		    //println "Returning "  +parts.size()    		
