@@ -505,7 +505,7 @@ ISlice se = new ISlice (){
 			 ArrayList<Line3D> lines =[]
 			for(Edge e: edges){
 				
-				double z=offset
+				double z=offset+Math.random()*2+1
 				p1 = new Vector3d(e.getP1().x,e.getP1().y,z)
 				p2 = new Vector3d(e.getP2().x,e.getP2().y,z)
 				Line3D line = new Line3D(p1,p2);
