@@ -263,8 +263,7 @@ ISlice se = new ISlice (){
 			//BowlerStudioController.clearCSG()
 			//bc.getJfx3dmanager().clearUserNode()
 			//bc.addObject((Object)trianglesFiletered,null)
-			javafx.scene.paint.Color color = new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1);
-			showEdges(finalEdges,-5,color)
+			
 			
 			//throw new RuntimeException()
 			//return trianglesFiletered
@@ -272,9 +271,9 @@ ISlice se = new ISlice (){
 			//List<Polygon> parts= Edge.boundaryPathsWithHoles(
 	        //        	Edge.boundaryPaths(
 	         //       		Edge.boundaryEdgesOfPlaneGroup(triangles)));
-	         List<Polygon>boundaryPaths =  boundaryPaths(finalEdges)
+	         List<Polygon>boundaryPaths =  boundaryPaths(allEdges)
 	         //println "Boundary paths = "+boundaryPaths.size()
-	         List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
+	         //List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
 		    //println "Returning "  +parts.size()    		
 		    return boundaryPaths;  		
 		}
@@ -370,6 +369,8 @@ ISlice se = new ISlice (){
 	     * @return the list
 	     */
 	    public  List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
+	    		javafx.scene.paint.Color color = new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1);
+			showEdges(boundaryEdges,-5,color)
 	    		double oldCooinc = COINCIDENCE_TOLERANCE
 			COINCIDENCE_TOLERANCE = 0.0001
 			// the resulting boundary edge
@@ -428,15 +429,21 @@ ISlice se = new ISlice (){
 						if(p1dist>distance){
 							distance=p1dist
 							v=(e.getP1().pos)
+							next=e;
 						}
 						if(p2dist>distance){
 							distance=p1dist
 							v=(e.getP2().pos)
+							next=e;
 						}
 					}
 					boundaryPath.add(v)
-					
-				}else{
+					consumable.remove(next)
+					println "Starting vector for polygon = "+next
+					showEdges([next],20,javafx.scene.paint.Color.GREEN)
+					Thread.sleep(2000)
+				}
+				else{
 					
 					next = search(consumable,boundaryPath );
 					
