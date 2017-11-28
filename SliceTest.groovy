@@ -99,6 +99,9 @@ ISlice se = new ISlice (){
 			}
 			return unique
 		}
+		Edge fromVector3d(Vertex p1,Vertex p2){
+			
+		}
 		boolean edgeMatch(Edge tester,Edge myEdge){
 			if((tester!=null) && (myEdge!=null)){
 				boolean p1Shared =  eq(myEdge.getP1().pos,tester.getP1().pos)&&
@@ -231,17 +234,17 @@ ISlice se = new ISlice (){
 				}
 
 			}
-			/*
+			
 			List<Polygon> fixed =  new ArrayList<>();		
--					
--			for(ArrayList<Edge> it: edges){		
--				if(it.size()>2){		
--					fixed.add( Edge.toPolygon(		
--							Edge.toPoints(it)		
--							,Plane.XY_PLANE));		
--				}		
--			}		
-			*/
+					
+			for(ArrayList<Edge> el: edges){		
+				if(el.size()>2){		
+					fixed.add( Edge.toPolygon(		
+							Edge.toPoints(el)		
+							,Plane.XY_PLANE));		
+				}		
+			}		
+			println "New polygons = "+edges.size()+" from "+triangles.size()
 			//println "Fixed"
 			//BowlerStudioController.clearCSG()
 			//bc.getJfx3dmanager().clearUserNode()
@@ -250,18 +253,20 @@ ISlice se = new ISlice (){
 			//return rawPolygons
 			//return fixed
 			
-			//List<Polygon> triangles  = new ArrayList<>();
-			//for (int i = 0; i < fixed.size(); i++) {
-			//	trianglesFromPolygon(fixed.get(i),triangles, uniquePoints )
-			//}
-			
-			
-			ArrayList<Edge> allEdges = []
-			for(ArrayList<Edge>  p:edges){
-				allEdges.addAll(p)
+			List<Polygon> trianglesFixed  = new ArrayList<>();
+			for (int i = 0; i < fixed.size(); i++) {
+				trianglesFromPolygon(fixed.get(i),trianglesFixed )
 			}
+			println "New polygons = "+trianglesFixed.size()+" from "+fixed.size()
+			uniquePoints.clear()
+			ArrayList<Edge> allEdges = []
+			for(Polygon it: trianglesFixed){
+				
+				addEdges(it,allEdges)
+			}
+
 			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
-			println "Final edges = "+finalEdges.size()+" from "+allEdges.size()
+			println "New edges = "+trianglesFixed.size()+" to "+allEdges.size()
 			//println "Edges Filtered"
 			//BowlerStudioController.clearCSG()
 			//bc.getJfx3dmanager().clearUserNode()
@@ -523,31 +528,42 @@ ISlice se = new ISlice (){
 			return lines
 		}
 		void trianglesFromPolygon(Polygon tester, List<Polygon> triangles ){
-			
-			List<Vector3d> vertices = Extrude.toCCW(tester.vertices.collect{it.pos});
-			List<Polygon> workingPoly = Polygon.fromConcavePoints(vertices)
+			//println "Trinagulating "+tester.vertices
+			List<Vertex> vertices = tester.vertices
+			//println "Trinagulating "+vertices
 			if(vertices.size()==3){
-				add(workingPoly.get(0),triangles,null);
+				add(tester,triangles);
 				return
 			}
-			for(Polygon newworking:workingPoly){
-				eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(newworking);
-				eu.mihosoft.vrl.v3d.ext.org.poly2tri.Poly2Tri.triangulate(p);
-				List<DelaunayTriangle> t = p.getTriangles();
-				for (DelaunayTriangle d:t){
-					Polygon testPoly =d.toPolygon()
-					add(testPoly,triangles,null)
-				}
+			BowlerStudioController.clearCSG()
+			bc.getJfx3dmanager().clearUserNode()
+			//bc.addObject((Object)triangles,null)
+			bc.addObject((Object)tester,null)
+			ArrayList<Edge> thisPolyEdges= []
+			
+			addEdges(tester,thisPolyEdges)// load the boundary edges
+			for(Edge e:thisPolyEdges)
+				showEdges([e],-5, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+			
+			
+			
+			eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(tester);
+			eu.mihosoft.vrl.v3d.ext.org.poly2tri.Poly2Tri.triangulate(p);
+			List<DelaunayTriangle> t = p.getTriangles();
+			for (DelaunayTriangle d:t){
+				Polygon testPoly =d.toPolygon()
+				add(testPoly,triangles)
 			}
+			
 		}
 		private void add(Polygon tester, List<Polygon> triangles){
 			List<Vertex> vertices = tester.vertices;
 			boolean badPoint = false
 			if(uniquePoints!=null)
 				for (Vertex v:vertices) {
-					if( existing (v, uniquePoints) ==null ){
-						badPoint=true;
-						println "Dumping triangle with bad point "+v
+					if( existing (v) ==null ){
+						//badPoint=true;
+						//println "Dumping triangle with bad point "+v
 					}
 				}
 			if(badPoint == false){
