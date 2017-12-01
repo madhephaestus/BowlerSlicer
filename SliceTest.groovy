@@ -85,7 +85,7 @@ ISlice se = new ISlice (){
 					(edgeMatch(A.get(0), B.get(i1)) &&
 					edgeMatch(A.get(1), B.get(i0)) )
 				){
-					println "Matching tringle found"
+					//println "Matching tringle found"
 					return true
 				}
 			}
@@ -553,6 +553,7 @@ ISlice se = new ISlice (){
 			return lines
 		}
 		void trianglesFromPolygon(Polygon tester, List<Polygon> triangles ){
+			int startingSize = triangles.size()
 			//println "Trinagulating "+tester.vertices
 			List<Vertex> vertices = tester.vertices
 			//println "Trinagulating "+vertices
@@ -629,43 +630,88 @@ ISlice se = new ISlice (){
 			triangleCount = (int)(vertices.size()-2)
 			int edgeTriangleCount = (int)(thisPolyEdges.size()-3)
 			showEdges(thisPolyEdges,10, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-			
+			/*
 			if( edgeTriangleCount != triangleCount){
 				for(int i=0;i<thisPolyEdges.size();i++){
 					showEdges([thisPolyEdges.get(i)],
-							15+(i*3), 
+							-15-(i*3), 
 							new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
 				}
-				throw new RuntimeException("Triangulation failed! "+triangleCount+" got "+edgeTriangleCount)
+				System.out.println("Edge Computing failed! Computed from verticies="+triangleCount+" got "+edgeTriangleCount)
 			}
-			
-			println "adding "+triangleCount+" triangles"
+			*/
+			//println "\n\nExpecting to add "+edgeTriangleCount+" triangles"
 			//
 			for(Edge testEdge:thisPolyEdges){
+				
 				for(Edge e1:thisPolyEdges){
 					if(touching(testEdge.getP2(),e1.getP1())){
 						for(Edge e2:thisPolyEdges){
-							if(touching(e2.getP1(),e1.getP2()))
+							if(touching(e2.getP1(),e1.getP2())){
 								if(touching(testEdge.getP1(),e2.getP2())){
 									newTri =[testEdge,e1,e2]
 									
 									if(add( Edge.toPolygon(		
 										Edge.toPoints([testEdge,e1,e2])		
 										,Plane.XY_PLANE),triangles)){
+											//println "Adding "+newTri+" "+triangles.size()
 											depth +=10
-											showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+											//showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
 										}
 								}
+							}
+							if(touching(e2.getP2(),e1.getP2())){
+								if(touching(testEdge.getP1(),e2.getP1())){
+									newTri =[testEdge,e1,e2]
+									
+									if(add( Edge.toPolygon(		
+										Edge.toPoints([testEdge,e1,e2])		
+										,Plane.XY_PLANE),triangles)){
+											//println "Adding "+newTri+" "+triangles.size()
+											depth +=10
+											//showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+										}
+								}
+							}
+						}
+					}
+					if(touching(testEdge.getP2(),e1.getP2())){
+						for(Edge e2:thisPolyEdges){
+							if(touching(e2.getP2(),e1.getP1())){
+								if(touching(testEdge.getP1(),e2.getP1())){
+									newTri =[testEdge,e1,e2]
+									if(add( Edge.toPolygon(		
+										Edge.toPoints([testEdge,e1,e2])		
+										,Plane.XY_PLANE),triangles)){
+											//println "Adding "+newTri+" "+triangles.size()
+											depth +=10
+											//showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+										}
+								}
+							}
+							if(touching(e2.getP1(),e1.getP1())){
+								if(touching(testEdge.getP1(),e2.getP2())){
+									newTri =[testEdge,e1,e2]
+									if(add( Edge.toPolygon(		
+										Edge.toPoints([testEdge,e1,e2])		
+										,Plane.XY_PLANE),triangles)){
+											//println "Adding "+newTri+" "+triangles.size()
+											depth +=10
+											//showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+										}
+								}
+							}
 						}
 					}
 				}
 			}
-			foundTriangles = triangles.size()
-			if(foundTriangles!=triangleCount){
+			/*
+			foundTriangles = triangles.size()-startingSize
+			if(foundTriangles!=edgeTriangleCount){
 				
-				throw new RuntimeException("Triangulation failed! Expected "+triangleCount+" got "+foundTriangles)
+				throw new RuntimeException("Triangulation failed! Expected "+edgeTriangleCount+" got "+foundTriangles)
 			}
-
+*/
 			return // in the 4 vector case solve it anyliticaly
 			/*
 			eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(tester);
@@ -682,7 +728,7 @@ ISlice se = new ISlice (){
 			List<Vertex> vertices = tester.vertices;
 			boolean badPoint = false
 			if(triangleMatchList( tester, triangles)){
-				println "duplicate filtered"
+				//println "duplicate filtered"
 				return false
 			}
 			if(uniquePoints!=null)
