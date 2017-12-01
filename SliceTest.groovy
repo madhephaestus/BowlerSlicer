@@ -126,19 +126,34 @@ ISlice se = new ISlice (){
 			return false
 		}
 		ArrayList<Edge> uniqueOnly(ArrayList<Edge> newList){
+			
 			ArrayList<Edge> edgesOnly = []
+			ArrayList<Edge> rejected = []
 			for(int i=0;i<newList.size();i++){
 				Edge myEdge = newList.get(i);
 				if(myEdge!=null){
 					boolean internalEdge = false;
-					
-					for(int j=0;j<newList.size();j++){
-						if(i!=j){
-							Edge tester=newList.get(j);
+					for(int j=0;j<rejected.size();j++){
+						
+							Edge tester=rejected.get(j);
 							if(tester!=null){
-								if(edgeMatch(tester,myEdge)){
-									//println "Internal Line "+myEdge+" "+tester
-									internalEdge=true;
+								if(tester!=myEdge)
+									if(edgeMatch(tester,myEdge)){
+										println "Already rejected Line "+myEdge+" "+tester
+										internalEdge=true;
+									}
+							}
+						
+					}
+					if(!internalEdge){
+						for(int j=0;j<newList.size();j++){
+							if(i!=j){
+								Edge tester=newList.get(j);
+								if(tester!=null){
+									if(edgeMatch(tester,myEdge)){
+										//println "Internal Line "+myEdge+" "+tester
+										internalEdge=true;
+									}
 								}
 							}
 						}
@@ -147,11 +162,23 @@ ISlice se = new ISlice (){
 					if(internalEdge==false){
 						if(length(myEdge)>COINCIDENCE_TOLERANCE){
 							edgesOnly.add(myEdge)
+							println "Adding edge "	+	myEdge				
+						}else{
+							println "Rejecting short edge "	+	myEdge	
+							rejected.add(myEdge)
 						}
 						
+					}else{
+						println "Rejecting internal edge "	+	myEdge	
+						rejected.add(myEdge)
 					}
+					
 				}
 			}
+			showEdges(newList,20, javafx.scene.paint.Color.GREEN)
+			showEdges(rejected,10, javafx.scene.paint.Color.RED)
+			showEdges(edgesOnly,0, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+			//ThreadUtil.wait(100)
 			return edgesOnly
 		}
 
@@ -280,6 +307,7 @@ ISlice se = new ISlice (){
 			for (int i = 0; i < fixed.size(); i++) {
 				trianglesFromPolygon(fixed.get(i),trianglesFixed )
 			}
+			bc.addObject((Object)trianglesFixed,null)
 			println "New polygons = "+trianglesFixed.size()+" from "+fixed.size()
 			uniquePoints.clear()
 			ArrayList<Edge> allEdges = []
@@ -288,7 +316,7 @@ ISlice se = new ISlice (){
 				addEdges(it,allEdges)
 			}
 			for(ArrayList<Edge> e:edges)
-			showEdges(e,-10, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+				showEdges(e,(Math.random()*3)-20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
 							
 			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
 			println "New edges = "+finalEdges.size()+" to "+allEdges.size()
@@ -406,7 +434,7 @@ ISlice se = new ISlice (){
 	     */
 	    public  List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
 	    		javafx.scene.paint.Color color = new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1);
-			showEdges(boundaryEdges,-5,color)
+			//showEdges(boundaryEdges,-5,color)
 	    		double oldCooinc = COINCIDENCE_TOLERANCE
 			COINCIDENCE_TOLERANCE = 0.0001
 			// the resulting boundary edge
@@ -561,8 +589,7 @@ ISlice se = new ISlice (){
 				add(tester,triangles);
 				return
 			}
-			BowlerStudioController.clearCSG()
-			bc.getJfx3dmanager().clearUserNode()
+			
 
 			ArrayList<Edge> thisPolyEdges= []
 			ArrayList<Edge> incomingEdges= []
@@ -586,7 +613,7 @@ ISlice se = new ISlice (){
 
 			
 			int depth =0
-			showEdges(thisPolyEdges,0, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+			//showEdges(thisPolyEdges,0, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
 			for(Vertex v:vertices){
 				for(Vertex t:vertices){
 					if(t!=v){
