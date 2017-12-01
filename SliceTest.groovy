@@ -80,9 +80,10 @@ ISlice se = new ISlice (){
 				if(i2>2)
 					i2=i2-3	
 				//println "Testing trangle orentation "+i0+" "+i1+ " "+i2
-				if(	edgeMatch(A.get(0), B.get(i0)) &&
-					edgeMatch(A.get(1), B.get(i2)) &&
-					edgeMatch(A.get(2), B.get(i3)) 
+				if(	(edgeMatch(A.get(0), B.get(i0)) &&
+					edgeMatch(A.get(1), B.get(i1)) )||
+					(edgeMatch(A.get(0), B.get(i1)) &&
+					edgeMatch(A.get(1), B.get(i0)) )
 				){
 					println "Matching tringle found"
 					return true
@@ -568,75 +569,105 @@ ISlice se = new ISlice (){
 			
 			for(Edge e:incomingEdges){
 				valid=true
-				for(Edge n:thisPolyEdges)
-					if(edgeMatch(e,n)){
-						valid=false
+				if(length(e)<COINCIDENCE_TOLERANCE){
+					valid=false
+				}
+				if(valid)
+					for(Edge n:thisPolyEdges){
+						if(edgeMatch(e,n)){
+							valid=false
+						}
+						
 					}
 				if(valid)
 					thisPolyEdges.add(e)
 			}
 
-			if(thisPolyEdges.size()==4){
-				int depth =0
-				for(Vertex v:vertices){
-					for(Vertex t:vertices){
-						if(t!=v){
-							Edge testEdge = new Edge(v,t)
-							boolean valid = true
-							for(Edge e:thisPolyEdges){
-								double d=(2*depth++)+10
-								
-								if(edgeMatch(testEdge,e) &&valid ){
-									valid=false
-									//println "Invalid "+testEdge +" same as "+e
-									
-									//showEdges([testEdge],d, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-									//showEdges([e],d, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-								}
-								if(e.getIntersection(testEdge).isPresent() &&
-								!sharePoint(testEdge,e)
-								&&valid ){
-									valid=false
-									//println "Invalid "+testEdge +" crosses "+e
-									//showEdges([testEdge],d, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-									//showEdges([e],d, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+			
+			int depth =0
+			showEdges(thisPolyEdges,0, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+			for(Vertex v:vertices){
+				for(Vertex t:vertices){
+					if(t!=v){
+						Edge testEdge = new Edge(v,t)
+						boolean valid = true
+						for(Edge e:thisPolyEdges){
 							
-								}
-							}
-							for(Vertex x:vertices){
-								if(!touching(x,t) && !touching(x,v))
-									if(testEdge.contains(x.pos) &&valid ){// test to see if the edge is a degenetate trangle
-										valid=false
-										//println "Invalid "+testEdge +" contains "+x
-									}
-							}
-							if(valid){
-								//println "adding Edge "+testEdge
+							if(edgeMatch(testEdge,e) &&valid ){
+								valid=false
+								//println "Invalid "+testEdge +" same as "+e
 								
-								for(Edge e1:thisPolyEdges){
-									if(touching(testEdge.getP2(),e1.getP1())){
-										for(Edge e2:thisPolyEdges){
-											if(touching(e2.getP1(),e1.getP2()))
-												if(touching(testEdge.getP1(),e2.getP2())){
-													add( Edge.toPolygon(		
-														Edge.toPoints([testEdge,e1,e2])		
-														,Plane.XY_PLANE),triangles)
-												}
-										}
-									}
-	
-								}
-								thisPolyEdges.add(testEdge)
-							}else{
-								
+								//showEdges([testEdge],d, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+								//showEdges([e],d, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
 							}
+							if(e.getIntersection(testEdge).isPresent() &&
+							!sharePoint(testEdge,e)
+							&&valid ){
+								valid=false
+								//println "Invalid "+testEdge +" crosses "+e
+								//showEdges([testEdge],d, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+								//showEdges([e],d, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+						
+							}
+						}
+						for(Vertex x:vertices){
+							if(!touching(x,t) && !touching(x,v))
+								if(testEdge.contains(x.pos) &&valid ){// test to see if the edge is a degenetate trangle
+									valid=false
+									//println "Invalid "+testEdge +" contains "+x
+								}
+						}
+						if(valid){
+							//println "adding Edge "+testEdge
+							thisPolyEdges.add(testEdge)
+							//depth +=10
+							//showEdges([testEdge],depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
 						}
 					}
 				}
-
-				return // in the 4 vector case solve it anyliticaly
+			}
+			triangleCount = (int)(vertices.size()-2)
+			int edgeTriangleCount = (int)(thisPolyEdges.size()-3)
+			showEdges(thisPolyEdges,10, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+			
+			if( edgeTriangleCount != triangleCount){
+				for(int i=0;i<thisPolyEdges.size();i++){
+					showEdges([thisPolyEdges.get(i)],
+							15+(i*3), 
+							new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+				}
+				throw new RuntimeException("Triangulation failed! "+triangleCount+" got "+edgeTriangleCount)
 			}
 			
+			println "adding "+triangleCount+" triangles"
+			//
+			for(Edge testEdge:thisPolyEdges){
+				for(Edge e1:thisPolyEdges){
+					if(touching(testEdge.getP2(),e1.getP1())){
+						for(Edge e2:thisPolyEdges){
+							if(touching(e2.getP1(),e1.getP2()))
+								if(touching(testEdge.getP1(),e2.getP2())){
+									newTri =[testEdge,e1,e2]
+									
+									if(add( Edge.toPolygon(		
+										Edge.toPoints([testEdge,e1,e2])		
+										,Plane.XY_PLANE),triangles)){
+											depth +=10
+											showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+										}
+								}
+						}
+					}
+				}
+			}
+			foundTriangles = triangles.size()
+			if(foundTriangles!=triangleCount){
+				
+				throw new RuntimeException("Triangulation failed! Expected "+triangleCount+" got "+foundTriangles)
+			}
+
+			return // in the 4 vector case solve it anyliticaly
+			/*
 			eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(tester);
 			eu.mihosoft.vrl.v3d.ext.org.poly2tri.Poly2Tri.triangulate(p);
 			List<DelaunayTriangle> t = p.getTriangles();
@@ -644,11 +675,16 @@ ISlice se = new ISlice (){
 				Polygon testPoly =d.toPolygon()
 				add(testPoly,triangles)
 			}
+			*/
 			
 		}
-		void add(Polygon tester, List<Polygon> triangles){
+		boolean add(Polygon tester, List<Polygon> triangles){
 			List<Vertex> vertices = tester.vertices;
 			boolean badPoint = false
+			if(triangleMatchList( tester, triangles)){
+				println "duplicate filtered"
+				return false
+			}
 			if(uniquePoints!=null)
 				for (Vertex v:vertices) {
 					if( existing (v) ==null ){
@@ -658,7 +694,9 @@ ISlice se = new ISlice (){
 				}
 			if(badPoint == false){
 				triangles.add(tester);
+				return true
 			}
+			return false
 		}
 		private boolean fixEdgeIntersectingList(int l,ArrayList<Edge> itList, ArrayList<Edge> testerList){
 			Edge myEdge = itList.get(l);
