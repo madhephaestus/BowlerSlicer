@@ -16,6 +16,7 @@ ISlice se = new ISlice (){
 		BowlerStudioController bc = BowlerStudioController.getBowlerStudio() 
 	     //BowlerStudioController.clearCSG()
 		double COINCIDENCE_TOLERANCE = 0.0001;
+		double step =10
 		boolean touhing(Vertex point, Edge e){
 			return e.contains(point.pos);
 		}
@@ -100,9 +101,7 @@ ISlice se = new ISlice (){
 			}
 			return unique
 		}
-		Edge fromVector3d(Vertex p1,Vertex p2){
-			
-		}
+
 		boolean edgeMatch(Edge tester,Edge myEdge){
 			
 			if((tester!=null) && (myEdge!=null)){
@@ -137,11 +136,10 @@ ISlice se = new ISlice (){
 						
 							Edge tester=rejected.get(j);
 							if(tester!=null){
-								if(tester!=myEdge)
-									if(edgeMatch(tester,myEdge)){
-										println "Already rejected Line "+myEdge+" "+tester
-										internalEdge=true;
-									}
+								if(edgeMatch(tester,myEdge)){
+									//println "Already rejected Line "+myEdge+" "+tester
+									internalEdge=true;
+								}
 							}
 						
 					}
@@ -162,23 +160,27 @@ ISlice se = new ISlice (){
 					if(internalEdge==false){
 						if(length(myEdge)>COINCIDENCE_TOLERANCE){
 							edgesOnly.add(myEdge)
-							println "Adding edge "	+	myEdge				
+							//println "Adding edge "	+	myEdge				
 						}else{
-							println "Rejecting short edge "	+	myEdge	
+							//println "Rejecting short edge "	+	myEdge	
 							rejected.add(myEdge)
 						}
 						
 					}else{
-						println "Rejecting internal edge "	+	myEdge	
+						//println "Rejecting internal edge "	+	myEdge	
 						rejected.add(myEdge)
 					}
 					
+					
 				}
 			}
-			showEdges(newList,20, javafx.scene.paint.Color.GREEN)
-			showEdges(rejected,10, javafx.scene.paint.Color.RED)
-			showEdges(edgesOnly,0, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-			//ThreadUtil.wait(100)
+			//BowlerStudioController.clearCSG()
+			//bc.getJfx3dmanager().clearUserNode()
+			//showEdges(edgesOnly,step+20, javafx.scene.paint.Color.GREEN)
+			//showEdges(rejected,step+30, javafx.scene.paint.Color.RED)
+			//showEdges(newList,step+10, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+			//step+=10
+			//throw new RuntimeException()
 			return edgesOnly
 		}
 
@@ -188,78 +190,33 @@ ISlice se = new ISlice (){
 				try{
 					add(new Edge(getUnique(vertices.get(i) ), getUnique(vertices.get(i+1) )),newList);
 				}catch(Exception ex){
-					//println "Point Pruned "
+					println "Point Pruned "
 				}
 			}
 			try{
 				add(new Edge(getUnique(vertices.get(vertices.size()-1) ), getUnique(vertices.get(0) )),newList);
 			}catch(Exception ex){
-				//println "Point Pruned "
+				println "Point Pruned "
 			}
 		}
 		void add(Edge n,ArrayList<Edge> newList){
 			boolean valid=true
-			for(Edge e:newList){
-				if(edgeMatch(e,n)){
+			//for(Edge e:newList){
+			//	if(edgeMatch(e,n)){
 					//valid=false
-				}
-			}
+			//	}
+			//}
 			if(valid)
 				newList.add(n)
 		}
-		/**
-		 * An interface for slicking CSG objects into lists of points that can be extruded back out
-		 * @param incoming			  Incoming CSG to be sliced
-		 * @param slicePlane		  Z coordinate of incoming CSG to slice at
-		 * @param normalInsetDistance Inset for sliced output
-		 * @return					  A set of polygons defining the sliced shape
-		 */
-		public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance){
-			//println "Groovy Slicing engine"
-			uniquePoints.clear()
-			edges .clear()
-			List<Polygon> rawPolygons = new ArrayList<>();
-
-			// Actual slice plane
-			CSG planeCSG = incoming.getBoundingBox()
-					.toZMin();
-			// Loop over each polygon in the slice of the incoming CSG
-			// Add the polygon to the final slice if it lies entirely in the z plane
-			for(Polygon p: incoming
-					.transformed(slicePlane)
-					.intersect(planeCSG)						
-					.getPolygons()){
-				if(Slice.isPolygonAtZero(p)){
-					rawPolygons.add(p);
-				}
-			}
-			
-			
-			//return Edge.boundaryPolygonsOfPlaneGroup(rawPolygons)		
-			
-			/*
-			List<Polygon> triangles  = new ArrayList<>();
-			for (int i = 0; i < rawPolygons.size(); i++) {
-				trianglesFromPolygon(rawPolygons.get(i),triangles )
-			}
-			*/
-			//List<Polygon> trianglesFiletered = filterDuplicateTrangles(triangles)
-			//println "Started with "+triangles.size()+"triangles, filtered to "+trianglesFiletered.size()
-			//return triangles
-
-			
+		private List<Polygon>  updateEdges(List<Polygon> rawPolygons){
+			edges.clear()
 			for(Polygon it: rawPolygons){
 				ArrayList<Edge> newList = new ArrayList<>();
 				edges.add(newList);
 				addEdges(it,newList)
 			}
-			//println "raw"
-			//BowlerStudioController.clearCSG()
-			//bc.getJfx3dmanager().clearUserNode()
-			//bc.addObject((Object)rawPolygons,null)
-			//ThreadUtil.wait(500)
-			 //println "Begin checking edges"
-			 
+
 			//edges.forEach{// search the list of all edges
 			for (int k = 0; k < edges.size(); k++) {
 				//println "Checking list k "+k+" of "+edges.size()
@@ -287,38 +244,98 @@ ISlice se = new ISlice (){
 			
 			List<Polygon> fixed =  new ArrayList<>();		
 					
-			for(ArrayList<Edge> el: edges){		
-				if(el.size()>2){		
+			for(ArrayList<Edge> el: edges){
+				showEdges(el,
+				step, 
+				new javafx.scene.paint.Color(	Math.random()*0.5+0.5,
+										Math.random()*0.5+0.5,
+										Math.random()*0.5+0.5,1))	
+				//if(el.size()>2){		
 					fixed.add( Edge.toPolygon(		
 							Edge.toPoints(el)		
 							,Plane.XY_PLANE));		
-				}		
-			}		
-			///println "New polygons = "+edges.size()+" from "+triangles.size()
-			//println "Fixed"
-			//BowlerStudioController.clearCSG()
-			//bc.getJfx3dmanager().clearUserNode()
-			//bc.addObject((Object)fixed,null)
-			//ThreadUtil.wait(3000)
-			//return rawPolygons
-			//return fixed
-			
-			List<Polygon> trianglesFixed  = new ArrayList<>();
-			for (int i = 0; i < fixed.size(); i++) {
-				trianglesFromPolygon(fixed.get(i),trianglesFixed )
+				//}		
 			}
-			bc.addObject((Object)trianglesFixed,null)
-			println "New polygons = "+trianglesFixed.size()+" from "+fixed.size()
+			step+=10
+			return fixed	
+		}
+		/**
+		 * An interface for slicking CSG objects into lists of points that can be extruded back out
+		 * @param incoming			  Incoming CSG to be sliced
+		 * @param slicePlane		  Z coordinate of incoming CSG to slice at
+		 * @param normalInsetDistance Inset for sliced output
+		 * @return					  A set of polygons defining the sliced shape
+		 */
+		public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance){
+			//println "Groovy Slicing engine"
+			BowlerStudioController.clearCSG()
+			bc.getJfx3dmanager().clearUserNode()
 			uniquePoints.clear()
-			ArrayList<Edge> allEdges = []
-			for(Polygon it: trianglesFixed){
-				
-				addEdges(it,allEdges)
+			edges .clear()
+			List<Polygon> rawPolygons = new ArrayList<>();
+
+			// Actual slice plane
+			CSG planeCSG = incoming.getBoundingBox()
+					.toZMin();
+			// Loop over each polygon in the slice of the incoming CSG
+			// Add the polygon to the final slice if it lies entirely in the z plane
+			for(Polygon p: incoming
+					.transformed(slicePlane)
+					.intersect(planeCSG)						
+					.getPolygons()){
+				if(Slice.isPolygonAtZero(p)){
+					rawPolygons.add(p);
+				}
 			}
-			for(ArrayList<Edge> e:edges)
-				showEdges(e,(Math.random()*3)-20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-							
+			
+			
+			List<Polygon> fixed = updateEdges( rawPolygons)	
+	
+			List<Polygon> triangles =[]
+			ArrayList<Edge> allEdges = []
+			for (int i = 0; i < fixed.size(); i++) {
+				List<List<Edge>> triangleEdges =[]
+				triangleEdgesFromPolygon(fixed.get(i),  triangleEdges,triangles )
+				for(List<Edge> newTri:triangleEdges){
+					allEdges.addAll(newTri)
+				}
+			}
+			step+=10
+			showEdges(allEdges,
+					step, 
+					new javafx.scene.paint.Color(	Math.random()*0.5+0.5,
+											Math.random()*0.5+0.5,
+											Math.random()*0.5+0.5,1))
+			step+=10								
 			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
+			showEdges(finalEdges,
+					step, 
+					new javafx.scene.paint.Color(	Math.random()*0.5+0.5,
+											Math.random()*0.5+0.5,
+											Math.random()*0.5+0.5,1))
+			println "Adding all "+allEdges.size()+" unique only = "+		finalEdges.size()				
+			//return trianglesFixed
+			step+=10
+			throw new RuntimeException()
+			println "New polygons = "+trianglesFixed.size()+" from "+fixed.size()
+			
+			List<Polygon> reTriangled = updateEdges( trianglesFixed)	
+			
+			List<Polygon> reTrianglesFixed  = new ArrayList<>()
+			for (int i = 0; i < reTriangled.size(); i++) {
+				trianglesFromPolygon(reTriangled.get(i),reTrianglesFixed )
+			}
+			def lastRUnTri = updateEdges( reTrianglesFixed)// the edge data of all the triangles
+			
+			
+			
+			for(List<Edge> it: edges){
+				allEdges.addAll(it)
+			}
+			//for(ArrayList<Edge> e:edges)
+			//	showEdges(e,(Math.random()*3)-20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+							
+			//ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
 			println "New edges = "+finalEdges.size()+" to "+allEdges.size()
 			//println "Edges Filtered"
 			//BowlerStudioController.clearCSG()
@@ -388,7 +405,7 @@ ISlice se = new ISlice (){
 			if(map.size()==0)
 				return null
 			if(map.size()==1){
-				showEdges(map,25,javafx.scene.paint.Color.GREEN)
+				//showEdges(map,25,javafx.scene.paint.Color.GREEN)
 				return map.get(0)
 			}
 			println "Possible paths "+angles.values()
@@ -404,10 +421,10 @@ ISlice se = new ISlice (){
 					
 			}
 			map.remove(best)
-			showEdges(map,15,javafx.scene.paint.Color.RED)
-			showEdges([best],25,javafx.scene.paint.Color.GREEN)
-			println "Best = "+angles.get(best)
-			Thread.sleep(1000)
+			//showEdges(map,15,javafx.scene.paint.Color.RED)
+			//showEdges([best],25,javafx.scene.paint.Color.GREEN)
+			//println "Best = "+angles.get(best)
+			//Thread.sleep(1000)
 			return best
 		}
 		Edge search(ArrayList<Edge> consumable, List<eu.mihosoft.vrl.v3d.Vector3d> boundaryPath ){
@@ -503,10 +520,10 @@ ISlice se = new ISlice (){
 					}
 					boundaryPath.add(v)
 					consumable.remove(next)
-					println "Starting vector for polygon = "+next
-					showEdges([next],20,javafx.scene.paint.Color.GREEN)
-					showEdges(map,15,javafx.scene.paint.Color.RED)
-					Thread.sleep(2000)
+					//println "Starting vector for polygon = "+next
+					//showEdges([next],20,javafx.scene.paint.Color.GREEN)
+					//showEdges(map,15,javafx.scene.paint.Color.RED)
+					//Thread.sleep(2000)
 				}
 				else{
 					
@@ -580,19 +597,11 @@ ISlice se = new ISlice (){
 			}
 			return lines
 		}
-		void trianglesFromPolygon(Polygon tester, List<Polygon> triangles ){
-			int startingSize = triangles.size()
-			//println "Trinagulating "+tester.vertices
+		void triangleEdgesFromPolygon(Polygon tester, List<List<Edge>> triangleEdgesFinal, List<Polygon> triangles  ){
 			List<Vertex> vertices = tester.vertices
-			//println "Trinagulating "+vertices
-			if(vertices.size()==3){
-				add(tester,triangles);
-				return
-			}
-			
-
 			ArrayList<Edge> thisPolyEdges= []
 			ArrayList<Edge> incomingEdges= []
+			 List<List<Edge>> triangleEdges = []
 			addEdges(tester,incomingEdges)// load the boundary edges
 			
 			for(Edge e:incomingEdges){
@@ -656,7 +665,7 @@ ISlice se = new ISlice (){
 			}
 			triangleCount = (int)(vertices.size()-2)
 			int edgeTriangleCount = (int)(thisPolyEdges.size()-3)
-			showEdges(thisPolyEdges,10, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
+			//showEdges(thisPolyEdges,10, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
 			/*
 			if( edgeTriangleCount != triangleCount){
 				for(int i=0;i<thisPolyEdges.size();i++){
@@ -676,28 +685,16 @@ ISlice se = new ISlice (){
 						for(Edge e2:thisPolyEdges){
 							if(touching(e2.getP1(),e1.getP2())){
 								if(touching(testEdge.getP1(),e2.getP2())){
-									newTri =[testEdge,e1,e2]
+									triangleEdges.add([testEdge,e1,e2])
 									
-									if(add( Edge.toPolygon(		
-										Edge.toPoints([testEdge,e1,e2])		
-										,Plane.XY_PLANE),triangles)){
-											//println "Adding "+newTri+" "+triangles.size()
-											depth +=10
-											//showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-										}
+									
 								}
 							}
 							if(touching(e2.getP2(),e1.getP2())){
 								if(touching(testEdge.getP1(),e2.getP1())){
-									newTri =[testEdge,e1,e2]
+									triangleEdges.add([testEdge,e1,e2])
 									
-									if(add( Edge.toPolygon(		
-										Edge.toPoints([testEdge,e1,e2])		
-										,Plane.XY_PLANE),triangles)){
-											//println "Adding "+newTri+" "+triangles.size()
-											depth +=10
-											//showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-										}
+									
 								}
 							}
 						}
@@ -706,32 +703,21 @@ ISlice se = new ISlice (){
 						for(Edge e2:thisPolyEdges){
 							if(touching(e2.getP2(),e1.getP1())){
 								if(touching(testEdge.getP1(),e2.getP1())){
-									newTri =[testEdge,e1,e2]
-									if(add( Edge.toPolygon(		
-										Edge.toPoints([testEdge,e1,e2])		
-										,Plane.XY_PLANE),triangles)){
-											//println "Adding "+newTri+" "+triangles.size()
-											depth +=10
-											//showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-										}
+									triangleEdges.add([testEdge,e1,e2])
+									
+									
 								}
 							}
 							if(touching(e2.getP1(),e1.getP1())){
 								if(touching(testEdge.getP1(),e2.getP2())){
-									newTri =[testEdge,e1,e2]
-									if(add( Edge.toPolygon(		
-										Edge.toPoints([testEdge,e1,e2])		
-										,Plane.XY_PLANE),triangles)){
-											//println "Adding "+newTri+" "+triangles.size()
-											depth +=10
-											//showEdges(newTri,depth+20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-										}
+									triangleEdges.add([testEdge,e1,e2])
 								}
 							}
 						}
 					}
 				}
 			}
+			
 			/*
 			foundTriangles = triangles.size()-startingSize
 			if(foundTriangles!=edgeTriangleCount){
@@ -739,6 +725,32 @@ ISlice se = new ISlice (){
 				throw new RuntimeException("Triangulation failed! Expected "+edgeTriangleCount+" got "+foundTriangles)
 			}
 */
+			
+			for(List<Edge> newTri:triangleEdges){
+
+				if(add( Edge.toPolygon(	Edge.toPoints(newTri)		
+										,Plane.XY_PLANE),triangles)){
+											triangleEdgesFinal.add(newTri)
+											/*
+											showEdges(newTri,
+													step, 
+													new javafx.scene.paint.Color(	Math.random()*0.5+0.5,
+																			Math.random()*0.5+0.5,
+																			Math.random()*0.5+0.5,1))
+											*/
+										}
+			}
+			return 
+		}
+		
+		void trianglesFromPolygon(Polygon tester, List<Polygon> triangles ){
+			int startingSize = triangles.size()
+			//println "Trinagulating "+tester.vertices
+			
+			//println "Trinagulating "+vertices
+			 List<List<Edge>> triangleEdges =[]
+			triangleEdgesFromPolygon(tester,  triangleEdges,triangles )
+			
 			return // in the 4 vector case solve it anyliticaly
 			/*
 			eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon p = PolygonUtil.fromCSGPolygon(tester);
@@ -766,6 +778,7 @@ ISlice se = new ISlice (){
 					}
 				}
 			if(badPoint == false){
+				
 				triangles.add(tester);
 				return true
 			}
