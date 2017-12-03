@@ -190,13 +190,13 @@ ISlice se = new ISlice (){
 				try{
 					add(new Edge(getUnique(vertices.get(i) ), getUnique(vertices.get(i+1) )),newList);
 				}catch(Exception ex){
-					println "Point Pruned "
+					//println "Point Pruned "
 				}
 			}
 			try{
 				add(new Edge(getUnique(vertices.get(vertices.size()-1) ), getUnique(vertices.get(0) )),newList);
 			}catch(Exception ex){
-				println "Point Pruned "
+				//println "Point Pruned "
 			}
 		}
 		void add(Edge n,ArrayList<Edge> newList){
@@ -301,7 +301,8 @@ ISlice se = new ISlice (){
 	         List<Polygon>boundaryPaths =  boundaryPaths(finalEdges)
 	         //println "Boundary paths = "+boundaryPaths.size()
 	         //List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
-		    //println "Returning "  +parts.size()    		
+		    //println "Returning "  +parts.size()   
+		    showEdges(finalEdges,0,javafx.scene.paint.Color.RED)
 		    return boundaryPaths;  		
 		}
 
@@ -399,7 +400,7 @@ ISlice se = new ISlice (){
 	     * @return the list
 	     */
 	    public  List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
-	    		javafx.scene.paint.Color color = new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1);
+	    		//javafx.scene.paint.Color color = new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1);
 			//showEdges(boundaryEdges,-5,color)
 	    		double oldCooinc = COINCIDENCE_TOLERANCE
 			COINCIDENCE_TOLERANCE = 0.0001
@@ -487,7 +488,7 @@ ISlice se = new ISlice (){
 						}
 						*/
 						if(next !=null){
-							println "Widening search to "+i+" worked "
+							//println "Widening search to "+i+" worked "
 						}else{
 							//println "search failed "+ boundaryPath.size()
 							if(boundaryPath.size()>2){
@@ -535,7 +536,7 @@ ISlice se = new ISlice (){
 			 ArrayList<Line3D> lines =[]
 			for(Edge e: edges){
 				
-				double z=offset+(Math.random()*2)
+				double z=offset
 				p1 = new Vector3d(e.getP1().x,e.getP1().y,z)
 				p2 = new Vector3d(e.getP2().x,e.getP2().y,z)
 				Line3D line = new Line3D(p1,p2);
@@ -823,6 +824,9 @@ ISlice se = new ISlice (){
 	};
 
 Slice.setSliceEngine(se)
+
+if(args != null)
+ return
 // Create a CSG to slice
 CSG pin = new Cylinder(10, 100)
 	.toCSG()
@@ -846,27 +850,4 @@ CSG carrot = new Cylinder(100,  10)
 	
 Transform slicePlane = new Transform()
 
-//return [Slice.slice(carrot.prepForManufacturing(),slicePlane, 0),carrot]
-CSGDatabase.clear()
-def headParts  = (ArrayList<CSG> )ScriptingEngine.gitScriptRun(
-	"https://github.com/madhephaestus/ParametricAnimatronics.git", 
-	"AnimatronicHead.groovy" ,  
-	[false] )
-List<Polygon> allParts = []
-
-headParts.forEach{
-	try{
-		println it.getName()+" Adding parts "+allParts.size()
-		myParts = Slice.slice(it.prepForManufacturing(),slicePlane, 0)
-		BowlerStudioController
-			.getBowlerStudio() 
-			.addObject((Object)myParts,null)
-		allParts.addAll(myParts)
-	}catch(RuntimeException ex){
-		ex.printStackTrace()
-	}
-
-
-	}
-
-return allParts
+return [Slice.slice(carrot.prepForManufacturing(),slicePlane, 0),carrot]
