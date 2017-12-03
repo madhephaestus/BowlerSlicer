@@ -313,9 +313,10 @@ ISlice se = new ISlice (){
 					new javafx.scene.paint.Color(	Math.random()*0.5+0.5,
 											Math.random()*0.5+0.5,
 											Math.random()*0.5+0.5,1))
-			println "Adding all "+allEdges.size()+" unique only = "+		finalEdges.size()				
+			
 			//return trianglesFixed
 			step+=10
+			/*
 			throw new RuntimeException()
 			println "New polygons = "+trianglesFixed.size()+" from "+fixed.size()
 			
@@ -332,6 +333,7 @@ ISlice se = new ISlice (){
 			for(List<Edge> it: edges){
 				allEdges.addAll(it)
 			}
+			*/
 			//for(ArrayList<Edge> e:edges)
 			//	showEdges(e,(Math.random()*3)-20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
 							
