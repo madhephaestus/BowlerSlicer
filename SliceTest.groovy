@@ -245,16 +245,11 @@ ISlice se = new ISlice (){
 			List<Polygon> fixed =  new ArrayList<>();		
 					
 			for(ArrayList<Edge> el: edges){
-				showEdges(el,
-				step, 
-				new javafx.scene.paint.Color(	Math.random()*0.5+0.5,
-										Math.random()*0.5+0.5,
-										Math.random()*0.5+0.5,1))	
-				//if(el.size()>2){		
+				if(el.size()>2){		
 					fixed.add( Edge.toPolygon(		
 							Edge.toPoints(el)		
 							,Plane.XY_PLANE));		
-				//}		
+				}		
 			}
 			step+=10
 			return fixed	
@@ -268,8 +263,8 @@ ISlice se = new ISlice (){
 		 */
 		public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance){
 			//println "Groovy Slicing engine"
-			BowlerStudioController.clearCSG()
-			bc.getJfx3dmanager().clearUserNode()
+			//BowlerStudioController.clearCSG()
+			//bc.getJfx3dmanager().clearUserNode()
 			uniquePoints.clear()
 			edges .clear()
 			List<Polygon> rawPolygons = new ArrayList<>();
@@ -299,58 +294,10 @@ ISlice se = new ISlice (){
 				for(List<Edge> newTri:triangleEdges){
 					allEdges.addAll(newTri)
 				}
-			}
-			step+=10
-			showEdges(allEdges,
-					step, 
-					new javafx.scene.paint.Color(	Math.random()*0.5+0.5,
-											Math.random()*0.5+0.5,
-											Math.random()*0.5+0.5,1))
-			step+=10								
+			}							
 			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
-			showEdges(finalEdges,
-					step, 
-					new javafx.scene.paint.Color(	Math.random()*0.5+0.5,
-											Math.random()*0.5+0.5,
-											Math.random()*0.5+0.5,1))
-			
-			//return trianglesFixed
-			step+=10
-			/*
-			throw new RuntimeException()
-			println "New polygons = "+trianglesFixed.size()+" from "+fixed.size()
-			
-			List<Polygon> reTriangled = updateEdges( trianglesFixed)	
-			
-			List<Polygon> reTrianglesFixed  = new ArrayList<>()
-			for (int i = 0; i < reTriangled.size(); i++) {
-				trianglesFromPolygon(reTriangled.get(i),reTrianglesFixed )
-			}
-			def lastRUnTri = updateEdges( reTrianglesFixed)// the edge data of all the triangles
-			
-			
-			
-			for(List<Edge> it: edges){
-				allEdges.addAll(it)
-			}
-			*/
-			//for(ArrayList<Edge> e:edges)
-			//	showEdges(e,(Math.random()*3)-20, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-							
-			//ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
+
 			println "New edges = "+finalEdges.size()+" to "+allEdges.size()
-			//println "Edges Filtered"
-			//BowlerStudioController.clearCSG()
-			//bc.getJfx3dmanager().clearUserNode()
-			//bc.addObject((Object)trianglesFiletered,null)
-			
-			
-			//throw new RuntimeException()
-			//return trianglesFiletered
-			//println "Final outline"
-			//List<Polygon> parts= Edge.boundaryPathsWithHoles(
-	        //        	Edge.boundaryPaths(
-	         //       		Edge.boundaryEdgesOfPlaneGroup(triangles)));
 	         List<Polygon>boundaryPaths =  boundaryPaths(finalEdges)
 	         //println "Boundary paths = "+boundaryPaths.size()
 	         //List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
@@ -886,7 +833,7 @@ CSG carrot = new Cylinder(100,  10)
 .difference(
 	[new Cylinder(40, 100)
 	.toCSG()
-	//.movex(75)
+	.movex(75)
 	,
 	pin.movex(60),
 	pin.movex(-60),
@@ -899,7 +846,7 @@ CSG carrot = new Cylinder(100,  10)
 	
 Transform slicePlane = new Transform()
 
-return [Slice.slice(carrot.prepForManufacturing(),slicePlane, 0)]
+return [Slice.slice(carrot.prepForManufacturing(),slicePlane, 0),carrot]
 
 def headParts  = (ArrayList<CSG> )ScriptingEngine.gitScriptRun(
 	"https://github.com/madhephaestus/ParametricAnimatronics.git", 
