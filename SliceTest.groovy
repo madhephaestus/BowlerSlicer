@@ -13,7 +13,7 @@ println "Loading slicer"
 ISlice se = new ISlice (){
 		ArrayList<Vertex> uniquePoints = new ArrayList<>();
 		ArrayList<ArrayList<Edge>> edges = new ArrayList<>();
-		BowlerStudioController bc = BowlerStudioController.getBowlerStudio() 
+		///BowlerStudioController bc = BowlerStudioController.getBowlerStudio() 
 	     //BowlerStudioController.clearCSG()
 		double COINCIDENCE_TOLERANCE = 0.0001;
 		double step =10
@@ -174,13 +174,6 @@ ISlice se = new ISlice (){
 					
 				}
 			}
-			//BowlerStudioController.clearCSG()
-			//bc.getJfx3dmanager().clearUserNode()
-			//showEdges(edgesOnly,step+20, javafx.scene.paint.Color.GREEN)
-			//showEdges(rejected,step+30, javafx.scene.paint.Color.RED)
-			//showEdges(newList,step+10, new javafx.scene.paint.Color(Math.random()*0.5+0.5,Math.random()*0.5+0.5,Math.random()*0.5+0.5,1))
-			//step+=10
-			//throw new RuntimeException()
 			return edgesOnly
 		}
 
@@ -543,7 +536,7 @@ ISlice se = new ISlice (){
 				line.setStrokeWidth(0.8);
 				line.setStroke(color);
 				lines .add(line);
-				bc.addNode(line)
+				BowlerStudioController.getBowlerStudio() .addNode(line)
 			}
 			return lines
 		}
