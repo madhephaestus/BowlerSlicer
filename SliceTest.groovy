@@ -297,7 +297,7 @@ ISlice se = new ISlice (){
 			}							
 			ArrayList<Edge> finalEdges=uniqueOnly(allEdges)
 
-			println "New edges = "+finalEdges.size()+" to "+allEdges.size()
+			//println "New edges = "+finalEdges.size()+" to "+allEdges.size()
 	         List<Polygon>boundaryPaths =  boundaryPaths(finalEdges)
 	         //println "Boundary paths = "+boundaryPaths.size()
 	         //List<Polygon> parts= Edge.boundaryPathsWithHoles(boundaryPaths);       		
@@ -331,7 +331,7 @@ ISlice se = new ISlice (){
 			if(val<-Math.toRadians(165)){
 				//val+=(Math.PI*2)
 			}
-			println Math.toDegrees(val)+" = "+Math.toDegrees(angle2)+" - "+Math.toDegrees(angle1)
+			//println Math.toDegrees(val)+" = "+Math.toDegrees(angle2)+" - "+Math.toDegrees(angle1)
 			return val
 		}
 		Edge findEdgesWithPoint(Vector3d v,Vector3d vMinusOne,ArrayList<Edge> consumable){
@@ -357,7 +357,7 @@ ISlice se = new ISlice (){
 				//showEdges(map,25,javafx.scene.paint.Color.GREEN)
 				return map.get(0)
 			}
-			println "Possible paths "+angles.values()
+			//println "Possible paths "+angles.values()
 			double smallest =361
 			Edge best = null
 			for(Edge e:map){
@@ -494,10 +494,10 @@ ISlice se = new ISlice (){
 								//println "Last Polygon, correcting"
 								boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
 								result.add(Polygon.fromPoints(boundaryPath));
-								println "Unclosed Polygon, adding "+boundaryPath.size()
+								//println "Unclosed Polygon, adding "+boundaryPath.size()
 								boundaryPath.clear()
 							}else{
-								println "search failed "+ boundaryPath.size()
+								//println "search failed "+ boundaryPath.size()
 								boundaryPath.clear()
 							}
 						}
@@ -512,17 +512,17 @@ ISlice se = new ISlice (){
 					if(eq(boundaryPath.get(0),boundaryPath.get(boundaryPath.size()-1))){
 						Polygon p = Polygon.fromPoints(boundaryPath)
 						result.add(p);
-						println "Regular polygon detected and added "+boundaryPath.size()
+						//println "Regular polygon detected and added "+boundaryPath.size()
 						boundaryPath.clear()
 					}
 				}
-				Thread.sleep(1)
+				//Thread.sleep(1)
 			}
 			if(boundaryPath.size()>2){
 				//println "Last Polygon, correcting"
 				boundaryPath.add(boundaryPath.get(boundaryPath.size()-1))
 				result.add(Polygon.fromPoints(boundaryPath));
-				println "Last Polygon, adding "+boundaryPath.size()
+				//println "Last Polygon, adding "+boundaryPath.size()
 				boundaryPath.clear()
 				
 			}
@@ -846,8 +846,8 @@ CSG carrot = new Cylinder(100,  10)
 	
 Transform slicePlane = new Transform()
 
-return [Slice.slice(carrot.prepForManufacturing(),slicePlane, 0),carrot]
-
+//return [Slice.slice(carrot.prepForManufacturing(),slicePlane, 0),carrot]
+CSGDatabase.clear()
 def headParts  = (ArrayList<CSG> )ScriptingEngine.gitScriptRun(
 	"https://github.com/madhephaestus/ParametricAnimatronics.git", 
 	"AnimatronicHead.groovy" ,  
