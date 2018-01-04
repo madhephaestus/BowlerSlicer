@@ -1137,7 +1137,7 @@ ISlice se2 =new ISlice (){
 		bw.write(svg);
 		bw.close();
 		Transform tr = new Transform()
-					.translate(xOffset-imageOffset/10, xOffset-imageOffset/10,0)
+					.translate(xOffset-imageOffset/10, yOffset-imageOffset/10,0)
 					.scale(scale/28.3)
 		List<Polygon>  svgPolys = SVGLoad.toPolygons(tmpsvg).collect{
 			it.transform(tr)
@@ -1173,8 +1173,8 @@ CSG carrot = new Cylinder(100,  10)
 	cubePin.movey(-60)
 	]
 	)
-	//.movex(200)
-	//.movey(200)
+	.movex(-200)
+	.movey(-100)
 	//.roty(30)
 	//.rotx(30)
 
