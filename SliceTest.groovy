@@ -980,7 +980,7 @@ ISlice se2 =new ISlice (){
 		//int snHeight = (int) 4096;
 
 		MeshView sliceMesh = slicePart.getMesh();
-		sliceMesh.getTransforms().add(javafx.scene.transform.Transform.translate(2, 2));
+		sliceMesh.getTransforms().add(javafx.scene.transform.Transform.translate(imageOffset/10, imageOffset/10));
 		AnchorPane anchor = new AnchorPane(sliceMesh);
 		AnchorPane.setBottomAnchor(sliceMesh, (double) 0);
 		AnchorPane.setTopAnchor(sliceMesh, (double) 0);
@@ -1121,7 +1121,7 @@ ISlice se2 =new ISlice (){
 		String svg = com.neuronrobotics.bowlerstudio.utils.ImageTracer.imageToSVG(bi,options,(byte[][])null)
 		int headerStart = svg.indexOf(">")+1
 		int headerEnd = svg.lastIndexOf("<")
-		println "headerStart "+headerStart+ " headerEnd "+headerEnd
+		//println "headerStart "+headerStart+ " headerEnd "+headerEnd
 		String header = svg.substring(0,headerStart)
 		String footer = svg.substring(headerEnd,svg.size())
 		String body = svg.substring(headerStart,headerEnd)
@@ -1137,7 +1137,7 @@ ISlice se2 =new ISlice (){
 		bw.write(svg);
 		bw.close();
 		Transform tr = new Transform()
-					.translate(xOffset, xOffset,0)
+					.translate(xOffset-imageOffset/10, xOffset-imageOffset/10,0)
 					.scale(scale/28.3)
 		List<Polygon>  svgPolys = SVGLoad.toPolygons(tmpsvg).collect{
 			it.transform(tr)
@@ -1146,7 +1146,7 @@ ISlice se2 =new ISlice (){
 		print "Done Slicing!\n"
 		svgPolys.remove(0)
 		//println svg
-		BowlerStudioController.getBowlerStudio() .addObject((Object)svgPolys,(File)null)
+		//BowlerStudioController.getBowlerStudio() .addObject((Object)svgPolys,(File)null)
 		return 	svgPolys
 	}
 }
@@ -1181,5 +1181,5 @@ CSG carrot = new Cylinder(100,  10)
 Transform slicePlane = new Transform()
 //Image ruler = AssetFactory.loadAsset("BowlerStudio-Icon.png");
 //ImageView rulerImage = new ImageView(ruler);
-Slice.slice(carrot.prepForManufacturing(),slicePlane, 0)
-return null
+slices = Slice.slice(carrot.prepForManufacturing(),slicePlane, 0)
+return [carrot,slices]
