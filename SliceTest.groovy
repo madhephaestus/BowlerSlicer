@@ -1024,7 +1024,7 @@ ISlice se2 =new ISlice (){
 		
 		ImageView sliceImage = new ImageView(obj_img);
 		
-		sliceImage.getTransforms().add(javafx.scene.transform.Transform.translate(xOffset, xOffset));
+		sliceImage.getTransforms().add(javafx.scene.transform.Transform.translate(xOffset-imageOffset/10, yOffset-imageOffset/10));
 		sliceImage.getTransforms().add(javafx.scene.transform.Transform.scale(scale,scale ));
 		BowlerStudioController.getBowlerStudio() .addNode(sliceImage)
 		//
