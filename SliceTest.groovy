@@ -1018,7 +1018,7 @@ ISlice se2 =new ISlice (){
 					pix[toPix(i,j)]=false;
 			}
 		}
-		println "Find boundries "+((double)(System.currentTimeMillis()-start)/1000.0)
+		println "Find boundries "
 		
 	
 		
@@ -1142,8 +1142,8 @@ ISlice se2 =new ISlice (){
 		List<Polygon>  svgPolys = SVGLoad.toPolygons(tmpsvg).collect{
 			it.transform(tr)
 		}
-		//tmpsvg.delete()
-		print "Done Slicing!\n"
+		tmpsvg.delete()
+		print "Done Slicing! Took "+((double)(System.currentTimeMillis()-start)/1000.0)+"\n\n"
 		svgPolys.remove(0)
 		//println svg
 		//BowlerStudioController.getBowlerStudio() .addObject((Object)svgPolys,(File)null)
