@@ -863,71 +863,7 @@ ISlice se2 =new ISlice (){
 	int toPix(int x,int y){
 		return ((x)*(yPix+2))+y+1
 	}
-	   /**
-     * Determines whether the specified point lies on tthis edge.
-     *
-     * @param p point to check
-     * @param TOL tolerance
-     * @return <code>true</code> if the specified point lies on this line
-     * segment; <code>false</code> otherwise
-     */
-    public boolean containsPoint(Vector3d p,Vertex p1 ,Vertex p2,double TOL) {
 
-  		double x = p.x;
-        double x1 = p1.pos.x;
-        double x2 = p2.pos.x;
-
-        double y = p.y;
-        double y1 = p1.pos.y;
-        double y2 = p2.pos.y;
-
-        double AB = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) );
-        double AP = Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1) );
-        double PB = Math.sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y));
-
-        return Math.abs(AB - (AP + PB)) < TOL;
-    }
-        /**
-     * Contains.
-     *
-     * @param p the p
-     * @return true, if successful
-     */
-    public boolean polygonContains(Vector3d p,Polygon poly) {
-        // taken from http://www.java-gaming.org/index.php?topic=26013.0
-        // and http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-        double px = p.x;
-        double py = p.y;
-        boolean oddNodes = false;
-        double x2 = poly.vertices.get(poly.vertices.size() - 1).pos.x;
-        double y2 = poly.vertices.get(poly.vertices.size() - 1).pos.y;
-        double x1, y1;
-        for (int i = 0; i < poly.vertices.size();  ++i) {
-        	Vertex v1 = poly.vertices.get(i)
-		Vertex v2
-		if(i<poly.vertices.size()-1){
-			v2=poly.vertices.get(i+1)
-		}else
-			v2=poly.vertices.get(0)
-		
-	     if (containsPoint(p,v1,v2,0.0000001)) {
-	         return true;
-	     }
-            x1 = poly.vertices.get(i).pos.x;
-            y1 = poly.vertices.get(i).pos.y;
-            if (((y1 < py) && (y2 >= py))
-                    || (y1 >= py) && (y2 < py)) {
-                if ((py - y1) / (y2 - y1)
-                        * (x2 - x1) < (px - x1)) {
-                    oddNodes = !oddNodes;
-                }
-            }
-            x2 = x1
-            y2 = y1
-            
-        }
-        return oddNodes;
-    }
 /**
 	 * An interface for slicking CSG objects into lists of points that can be extruded back out
 	 * @param incoming			  Incoming CSG to be sliced
@@ -956,20 +892,23 @@ ISlice se2 =new ISlice (){
 		//BowlerStudioController.getBowlerStudio() .addObject((Object)slicePart.movez(1),(File)null)
 		//BowlerStudioController.getBowlerStudio() .addObject((Object)rawPolygons,(File)null)
 		double ratio = slicePart.getTotalY()/slicePart.getTotalX() 
-		
+		boolean ratioOrentation = slicePart.getTotalX()>slicePart.getTotalY() 
+		if(ratioOrentation )
+		 ratio = slicePart.getTotalX()/slicePart.getTotalY()
+		ratio=1/ratio 
+		println "ratio is "+ ratio
 		LengthParameter printerOffset 			= new LengthParameter("printerOffset",0.5,[1.2,0])
 		double scalePixel = 0.25
-		double size = slicePart.getTotalX()/printerOffset.getMM()/scalePixel
-		if(slicePart.getTotalY()>slicePart.getTotalX() ){
-			size = slicePart.getTotalY()/printerOffset.getMM()/scalePixel
-			ratio = slicePart.getTotalX()/slicePart.getTotalY()
-		}
-		xPix = size*(ratio>1?1.0:ratio);
-		yPix = size*(ratio<1?1.0:ratio);
+		double size =3096
+		
+		
+		xPix = size*(ratioOrentation?1.0:ratio);
+		yPix = size*(!ratioOrentation?1.0:ratio);
 		int pixels = (xPix+2)*(yPix+2)
 		double xOffset = slicePart.getMinX()
 		double yOffset = slicePart.getMinY()
-		double scale = slicePart.getTotalX()/xPix
+		double scaleX = slicePart.getTotalX()/xPix
+		double scaleY = slicePart.getTotalY()/yPix
 		
 		boolean [] pix =new boolean [pixels]
 		println "Image x=" +xPix+" by y="+yPix+" at x="+xOffset+" y="+yOffset
@@ -991,7 +930,7 @@ ISlice se2 =new ISlice (){
 
 
 		SnapshotParameters snapshotParameters = new SnapshotParameters();
-		snapshotParameters.setTransform(new Scale(1/scale, 1/scale));
+		snapshotParameters.setTransform(new Scale(1/scaleX, 1/scaleY));
 		snapshotParameters.setDepthBuffer(true);
 		snapshotParameters.setFill(Color.TRANSPARENT);
 		
@@ -1025,12 +964,12 @@ ISlice se2 =new ISlice (){
 		ImageView sliceImage = new ImageView(obj_img);
 		
 		sliceImage.getTransforms().add(javafx.scene.transform.Transform.translate(xOffset-imageOffset/10, yOffset-imageOffset/10));
-		sliceImage.getTransforms().add(javafx.scene.transform.Transform.scale(scale,scale ));
+		sliceImage.getTransforms().add(javafx.scene.transform.Transform.scale(scaleX,scaleY ));
 		BowlerStudioController.getBowlerStudio() .addNode(sliceImage)
 		//
 
 		double MMTOPX = 3.5409643774783404;
-		float outputScale = (float) (MMTOPX / scale);
+		float outputScale = (float) (MMTOPX / (ratioOrentation?scaleX:scaleY));
 		// Options
 		HashMap<String, Float> options = new HashMap<String, Float>();
 
@@ -1136,17 +1075,20 @@ ISlice se2 =new ISlice (){
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(svg);
 		bw.close();
+		double totalScale =( scaleX*scaleX)/SVGExporter.Scale
 		Transform tr = new Transform()
 					.translate(xOffset-imageOffset/10, yOffset-imageOffset/10,0)
-					.scale(scale/28.3)
+					.scale(totalScale)
+					//
 		List<Polygon>  svgPolys = SVGLoad.toPolygons(tmpsvg).collect{
 			it.transform(tr)
 		}
 		tmpsvg.delete()
 		print "Done Slicing! Took "+((double)(System.currentTimeMillis()-start)/1000.0)+"\n\n"
-		svgPolys.remove(0)
+		println "Scales "+scaleX+" "+scaleY+" "+totalScale
+		//svgPolys.remove(0)
 		//println svg
-		//BowlerStudioController.getBowlerStudio() .addObject((Object)svgPolys,(File)null)
+		BowlerStudioController.getBowlerStudio() .addObject((Object)svgPolys,(File)null)
 		return 	svgPolys
 	}
 }
@@ -1177,9 +1119,15 @@ CSG carrot = new Cylinder(100,  10)
 	.movey(-100)
 	//.roty(30)
 	//.rotx(30)
-
+CSG carrot2=carrot.rotz(90).scalex(2)
 Transform slicePlane = new Transform()
+
 //Image ruler = AssetFactory.loadAsset("BowlerStudio-Icon.png");
 //ImageView rulerImage = new ImageView(ruler);
 slices = Slice.slice(carrot.prepForManufacturing(),slicePlane, 0)
-return [carrot,slices]
+slices2 = Slice.slice(carrot2.prepForManufacturing(),slicePlane, 0)
+return null
+return [carrot,
+//carrot2,
+//slices2,
+slices]
