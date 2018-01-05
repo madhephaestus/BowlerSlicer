@@ -899,7 +899,7 @@ ISlice se2 =new ISlice (){
 		println "ratio is "+ ratio
 		LengthParameter printerOffset 			= new LengthParameter("printerOffset",0.5,[1.2,0])
 		double scalePixel = 0.25
-		double size =4096
+		double size =2096
 		
 		
 		xPix = size*(ratioOrentation?1.0:ratio);
@@ -971,93 +971,92 @@ ISlice se2 =new ISlice (){
 		BowlerStudioController.getBowlerStudio() .addNode(sliceImage)
 		//
 
-		double MMTOPX = 3.5409643774783404;
-		float outputScale = (float) (MMTOPX);
+		double MMTOPX = 3.5409643774783404*100;
+		float outputScale = (float) (MMTOPX)
 		// Options
 		HashMap<String, Float> options = new HashMap<String, Float>();
+	        // Tracing
+	        options.put("ltres", 1f);// Error treshold for
+	                                    // straight lines.
+	        options.put("qtres", 1f);// Error treshold for
+	                                    // quadratic splines.
+	        options.put("pathomit", 0.02f);// Edge node paths
+	                                    // shorter than this
+	                                    // will be discarded for
+	                                    // noise reduction.
 
-		// Tracing
-		options.put("ltres", 1f);// Error treshold for
-									// straight lines.
-		options.put("qtres", 1f);// Error treshold for
-									// quadratic splines.
-		options.put("pathomit", 0.02f);// Edge node paths
-									// shorter than this
-									// will be discarded for
-									// noise reduction.
+	        // Color quantization
+	        options.put("colorsampling", 1f); // 1f means true ;
+	                                            // 0f means
+	                                            // false:
+	                                            // starting with
+	                                            // generated
+	                                            // palette
+	        options.put("numberofcolors", 16f);// Number of
+	                                            // colors to use
+	                                            // on palette if
+	                                            // pal object is
+	                                            // not defined.
+	        options.put("mincolorratio", 0.02f);// Color
+	                                            // quantization
+	                                            // will
+	                                            // randomize a
+	                                            // color if
+	                                            // fewer pixels
+	                                            // than (total
+	                                            // pixels*mincolorratio)
+	                                            // has it.
+	        options.put("colorquantcycles", 1f);// Color
+	                                            // quantization
+	                                            // will be
+	                                            // repeated this
+	                                            // many times.
+	        //
+	        // SVG rendering
+	        options.put("scale", outputScale);// Every
+	                                            // coordinate
+	                                            // will be
+	                                            // multiplied
+	                                            // with this, to
+	                                            // scale the
+	                                            // SVG.
+	        options.put("simplifytolerance", 1f);//
+	        options.put("roundcoords", 2f); // 1f means rounded
+	                                        // to 1 decimal
+	                                        // places, like 7.3
+	                                        // ; 3f means
+	                                        // rounded to 3
+	                                        // places, like
+	                                        // 7.356 ; etc.
+	        options.put("lcpr", 0f);// Straight line control
+	                                // point radius, if this is
+	                                // greater than zero, small
+	                                // circles will be drawn in
+	                                // the SVG. Do not use this
+	                                // for big/complex images.
+	        options.put("qcpr",0f);// Quadratic spline control
+	                                // point radius, if this is
+	                                // greater than zero, small
+	                                // circles and lines will be
+	                                // drawn in the SVG. Do not
+	                                // use this for big/complex
+	                                // images.
+	        options.put("desc", 0f); // 1f means true ; 0f means
+	                                    // false: SVG
+	                                    // descriptions
+	                                    // deactivated
+	        options.put("viewbox", 1f); // 1f means true ; 0f
+	                                    // means false: fixed
+	                                    // width and height
 
-		// Color quantization
-		options.put("colorsampling", 1f); // 1f means true ;
-											// 0f means
-											// false:
-											// starting with
-											// generated
-											// palette
-		options.put("numberofcolors", 16f);// Number of
-											// colors to use
-											// on palette if
-											// pal object is
-											// not defined.
-		options.put("mincolorratio", 0.02f);// Color
-											// quantization
-											// will
-											// randomize a
-											// color if
-											// fewer pixels
-											// than (total
-											// pixels*mincolorratio)
-											// has it.
-		options.put("colorquantcycles", 1f);// Color
-											// quantization
-											// will be
-											// repeated this
-											// many times.
-		//
-		// SVG rendering
-		options.put("scale", outputScale);// Every
-											// coordinate
-											// will be
-											// multiplied
-											// with this, to
-											// scale the
-											// SVG.
-		options.put("simplifytolerance", 1f);//
-		options.put("roundcoords", 2f); // 1f means rounded
-										// to 1 decimal
-										// places, like 7.3
-										// ; 3f means
-										// rounded to 3
-										// places, like
-										// 7.356 ; etc.
-		options.put("lcpr", 0f);// Straight line control
-								// point radius, if this is
-								// greater than zero, small
-								// circles will be drawn in
-								// the SVG. Do not use this
-								// for big/complex images.
-		options.put("qcpr",0f);// Quadratic spline control
-								// point radius, if this is
-								// greater than zero, small
-								// circles and lines will be
-								// drawn in the SVG. Do not
-								// use this for big/complex
-								// images.
-		options.put("desc", 0f); // 1f means true ; 0f means
-									// false: SVG
-									// descriptions
-									// deactivated
-		options.put("viewbox", 1f); // 1f means true ; 0f
-									// means false: fixed
-									// width and height
-
-		// Selective Gauss Blur
-		options.put("blurradius", 0f); // 0f means
-										// deactivated; 1f
-										// .. 5f : blur with
-										// this radius
-		options.put("blurdelta", 20f); // smaller than this
-									// RGB difference
-									// will be blurred
+	        // Selective Gauss Blur
+	        options.put("blurradius", 0f); // 0f means
+	                                        // deactivated; 1f
+	                                        // .. 5f : blur with
+	                                        // this radius
+	        options.put("blurdelta", 20f); // smaller than this
+	                                    // RGB difference
+	                                    // will be blurred
 		print "\nTracing..."
 		BufferedImage bi = SwingFXUtils.fromFXImage(obj_img,(BufferedImage)null)
 		String svg = com.neuronrobotics.bowlerstudio.utils.ImageTracer.imageToSVG(bi,options,(byte[][])null)
@@ -1083,7 +1082,9 @@ ISlice se2 =new ISlice (){
 					.translate(xOffset-imageOffsetMotion, yOffset-imageOffsetMotion,0)
 					.scale(totalScale)
 					//
-		ArrayList<Polygon>  svgPolys = SVGLoad.toPolygons(tmpsvg).collect{
+		SVGLoad l=new SVGLoad(tmpsvg.toURI())	
+		l.loadAllGroups(0.001, 0, 0);
+		ArrayList<Polygon>  svgPolys = l.toPolygons().collect{
 			it.transform(tr)
 		}
 		tmpsvg.delete()
@@ -1126,7 +1127,8 @@ CSG carrot = new Cylinder(100,  10)
 	.movey(-100)
 	//.roty(30)
 	//.rotx(30)
-CSG carrot2=carrot.rotz(90).scalex(2)
+CSG carrot2=carrot.rotz(90).scaley(1).scalex(0.1)
+.toYMin().toXMin()
 Transform slicePlane = new Transform()
 
 //Image ruler = AssetFactory.loadAsset("BowlerStudio-Icon.png");
