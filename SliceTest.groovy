@@ -1083,7 +1083,7 @@ ISlice se2 =new ISlice (){
 					.scale(totalScale)
 					//
 		SVGLoad l=new SVGLoad(tmpsvg.toURI())	
-		l.loadAllGroups(0.0003, 0, 0);
+		l.loadAllGroups(0.0004, 0, 0);
 		ArrayList<Polygon>  svgPolys = l.toPolygons().collect{
 			it.transform(tr)
 		}
@@ -1096,8 +1096,8 @@ ISlice se2 =new ISlice (){
 			Bounds b=tester.getBounds()
 			CSG box =  b.toCSG() 
 			boolean okToAdd=true
-			if(	(slicePart.getTotalX()<box.getTotalX())&&
-				(slicePart.getTotalY()<box.getTotalY())
+			if(	(slicePart.getTotalX()<(box.getTotalX()-imageOffsetMotion))&&
+				(slicePart.getTotalY()<(box.getTotalY()-imageOffsetMotion))
 			){
 				okToAdd=false
 				continue;
@@ -1124,7 +1124,7 @@ ISlice se2 =new ISlice (){
 				okParts.add(svgPolys.get(x))
 			}
 		}
-		println "Total polygons "+okParts.size()
+		println "CSG Sliced to "+okParts.size()+" polygons "
 		//println svg
 		//BowlerStudioController.getBowlerStudio() .addObject((Object)okParts,(File)null)
 		return 	okParts
