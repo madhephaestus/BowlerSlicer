@@ -873,7 +873,7 @@ ISlice se2 =new ISlice (){
 	 */
 	List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance){
 		List<Polygon> rawPolygons = new ArrayList<>();
-
+		long start = System.currentTimeMillis()
 		// Actual slice plane
 		CSG planeCSG = incoming.getBoundingBox()
 				.toZMin();
@@ -899,7 +899,7 @@ ISlice se2 =new ISlice (){
 		println "ratio is "+ ratio
 		LengthParameter printerOffset 			= new LengthParameter("printerOffset",0.5,[1.2,0])
 		double scalePixel = 0.25
-		double size =2096
+		double size =1024
 		
 		
 		xPix = size*(ratioOrentation?1.0:ratio);
@@ -912,9 +912,9 @@ ISlice se2 =new ISlice (){
 		
 		boolean [] pix =new boolean [pixels]
 		println "Image x=" +xPix+" by y="+yPix+" at x="+xOffset+" y="+yOffset
-		long start = System.currentTimeMillis()
+		
 		double imageOffset =180.0
-		double imageOffsetMotion =5
+		double imageOffsetMotion =imageOffset*scaleX/2
 		WritableImage obj_img = new WritableImage((int)(xPix+imageOffset), (int)(yPix+imageOffset));
 		//int snWidth = (int) 4096;
 		//int snHeight = (int) 4096;
@@ -1083,7 +1083,7 @@ ISlice se2 =new ISlice (){
 					.scale(totalScale)
 					//
 		SVGLoad l=new SVGLoad(tmpsvg.toURI())	
-		l.loadAllGroups(0.001, 0, 0);
+		l.loadAllGroups(0.0005, 0, 0);
 		ArrayList<Polygon>  svgPolys = l.toPolygons().collect{
 			it.transform(tr)
 		}
@@ -1125,6 +1125,7 @@ CSG carrot = new Cylinder(100,  10)
 	)
 	.movex(-200)
 	.movey(-100)
+	
 	//.roty(30)
 	//.rotx(30)
 CSG carrot2=carrot.rotz(90).scaley(1).scalex(0.1)
@@ -1135,6 +1136,7 @@ Transform slicePlane = new Transform()
 //ImageView rulerImage = new ImageView(ruler);
 slices = Slice.slice(carrot.prepForManufacturing(),slicePlane, 0)
 slices2 = Slice.slice(carrot2.prepForManufacturing(),slicePlane, 0)
+pin2 = Slice.slice(pin.prepForManufacturing(),slicePlane, 0)
 return null
 return [carrot,
 //carrot2,
