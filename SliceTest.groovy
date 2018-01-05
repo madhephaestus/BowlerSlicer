@@ -305,7 +305,7 @@ ISlice se = new ISlice (){
 					.toZMin();
 			// Loop over each polygon in the slice of the incoming CSG
 			// Add the polygon to the final slice if it lies entirely in the z plane
-			println "Preparing CSG slice"
+			//println "Preparing CSG slice"
 			for(Polygon p: incoming
 					.transformed(slicePlane)
 					.intersect(planeCSG)						
@@ -879,7 +879,7 @@ ISlice se2 =new ISlice (){
 				.toZMin();
 		// Loop over each polygon in the slice of the incoming CSG
 		// Add the polygon to the final slice if it lies entirely in the z plane
-		println "Preparing CSG slice"
+		//println "Preparing CSG slice"
 		CSG slicePart =incoming
 				.transformed(slicePlane)
 				.intersect(planeCSG)
@@ -896,7 +896,7 @@ ISlice se2 =new ISlice (){
 		if(ratioOrentation )
 		 ratio = slicePart.getTotalX()/slicePart.getTotalY()
 		ratio=1/ratio 
-		println "ratio is "+ ratio
+		//println "ratio is "+ ratio
 		LengthParameter printerOffset 			= new LengthParameter("printerOffset",0.5,[1.2,0])
 		double scalePixel = 0.25
 		double size =1024
@@ -911,7 +911,7 @@ ISlice se2 =new ISlice (){
 		double scaleY = slicePart.getTotalY()/yPix
 		
 		boolean [] pix =new boolean [pixels]
-		println "Image x=" +xPix+" by y="+yPix+" at x="+xOffset+" y="+yOffset
+		//println "Image x=" +xPix+" by y="+yPix+" at x="+xOffset+" y="+yOffset
 		
 		double imageOffset =180.0
 		double imageOffsetMotion =imageOffset*scaleX/2
@@ -960,7 +960,7 @@ ISlice se2 =new ISlice (){
 					pix[toPix(i,j)]=false;
 			}
 		}
-		println "Find boundries "
+		//println "Find boundries "
 		
 	
 		
@@ -1057,7 +1057,7 @@ ISlice se2 =new ISlice (){
 	        options.put("blurdelta", 20f); // smaller than this
 	                                    // RGB difference
 	                                    // will be blurred
-		print "\nTracing..."
+		//print "\nTracing..."
 		BufferedImage bi = SwingFXUtils.fromFXImage(obj_img,(BufferedImage)null)
 		String svg = com.neuronrobotics.bowlerstudio.utils.ImageTracer.imageToSVG(bi,options,(byte[][])null)
 		int headerStart = svg.indexOf(">")+1
@@ -1083,7 +1083,7 @@ ISlice se2 =new ISlice (){
 					.scale(totalScale)
 					//
 		SVGLoad l=new SVGLoad(tmpsvg.toURI())	
-		l.loadAllGroups(0.0005, 0, 0);
+		l.loadAllGroups(0.0003, 0, 0);
 		ArrayList<Polygon>  svgPolys = l.toPolygons().collect{
 			it.transform(tr)
 		}
@@ -1091,14 +1091,16 @@ ISlice se2 =new ISlice (){
 		print "Done Slicing! Took "+((double)(System.currentTimeMillis()-start)/1000.0)+"\n\n"
 		
 		def okParts = []
-		for(int x=0;x<svgPolys.size();x++){\
+		for(int x=0;x<svgPolys.size();x++){
 			Polygon tester = svgPolys.get(x)
 			Bounds b=tester.getBounds()
 			CSG box =  b.toCSG() 
 			boolean okToAdd=true
-			if(slicePart.getTotalX()<box.getTotalX()){
+			if(	(slicePart.getTotalX()<box.getTotalX())&&
+				(slicePart.getTotalY()<box.getTotalY())
+			){
 				okToAdd=false
-				
+				continue;
 			}
 			for(Polygon p:okParts){
 				Bounds bp=p.getBounds()
@@ -1107,13 +1109,15 @@ ISlice se2 =new ISlice (){
 				double ydiff = Math.abs(bpBox.getTotalY()-box.getTotalY())
 				double xdiffCenter = Math.abs(box.getCenter().minus(bpBox.getCenter()).x)
 				double ydiffCenter =Math.abs(box.getCenter().minus(bpBox.getCenter()).y)
-				if(	(xdiff<0.1)&&
-					(ydiff<0.1) &&
-					(ydiffCenter<0.1)&&
-					(ydiffCenter<0.1)
+				double delta =0.001
+				if(	(xdiff<delta)&&
+					(ydiff<delta) &&
+					(ydiffCenter<delta)&&
+					(ydiffCenter<delta)
 				){
 					
 					okToAdd=false
+					break;
 				}
 			}
 			if(okToAdd){
