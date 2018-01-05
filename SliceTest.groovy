@@ -1091,10 +1091,36 @@ ISlice se2 =new ISlice (){
 		print "Done Slicing! Took "+((double)(System.currentTimeMillis()-start)/1000.0)+"\n\n"
 		
 		def okParts = []
-		for(int x=0;x<svgPolys.size();x++){
-			okParts.add(svgPolys.get(x))
+		for(int x=0;x<svgPolys.size();x++){\
+			Polygon tester = svgPolys.get(x)
+			Bounds b=tester.getBounds()
+			CSG box =  b.toCSG() 
+			boolean okToAdd=true
+			if(slicePart.getTotalX()<box.getTotalX()){
+				okToAdd=false
+				
+			}
+			for(Polygon p:okParts){
+				Bounds bp=p.getBounds()
+				CSG bpBox =bp.toCSG()
+				double xdiff = Math.abs(bpBox.getTotalX()-box.getTotalX())
+				double ydiff = Math.abs(bpBox.getTotalY()-box.getTotalY())
+				double xdiffCenter = Math.abs(box.getCenter().minus(bpBox.getCenter()).x)
+				double ydiffCenter =Math.abs(box.getCenter().minus(bpBox.getCenter()).y)
+				if(	(xdiff<0.1)&&
+					(ydiff<0.1) &&
+					(ydiffCenter<0.1)&&
+					(ydiffCenter<0.1)
+				){
+					
+					okToAdd=false
+				}
+			}
+			if(okToAdd){
+				okParts.add(svgPolys.get(x))
+			}
 		}
-		println "Scales "+scaleX+" "+scaleY+" "+totalScale+" total "+okParts.size()
+		println "Total polygons "+okParts.size()
 		//println svg
 		BowlerStudioController.getBowlerStudio() .addObject((Object)okParts,(File)null)
 		return 	okParts
