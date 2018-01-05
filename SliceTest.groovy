@@ -1122,7 +1122,7 @@ ISlice se2 =new ISlice (){
 		}
 		println "Total polygons "+okParts.size()
 		//println svg
-		BowlerStudioController.getBowlerStudio() .addObject((Object)okParts,(File)null)
+		//BowlerStudioController.getBowlerStudio() .addObject((Object)okParts,(File)null)
 		return 	okParts
 	}
 }
