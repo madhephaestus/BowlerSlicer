@@ -899,7 +899,7 @@ ISlice se2 =new ISlice (){
 		println "ratio is "+ ratio
 		LengthParameter printerOffset 			= new LengthParameter("printerOffset",0.5,[1.2,0])
 		double scalePixel = 0.25
-		double size =3096
+		double size =4096
 		
 		
 		xPix = size*(ratioOrentation?1.0:ratio);
@@ -913,19 +913,22 @@ ISlice se2 =new ISlice (){
 		boolean [] pix =new boolean [pixels]
 		println "Image x=" +xPix+" by y="+yPix+" at x="+xOffset+" y="+yOffset
 		long start = System.currentTimeMillis()
-		int imageOffset =20
-		WritableImage obj_img = new WritableImage(xPix+imageOffset, yPix+imageOffset);
+		double imageOffset =180.0
+		double imageOffsetMotion =5
+		WritableImage obj_img = new WritableImage((int)(xPix+imageOffset), (int)(yPix+imageOffset));
 		//int snWidth = (int) 4096;
 		//int snHeight = (int) 4096;
 
 		MeshView sliceMesh = slicePart.getMesh();
-		sliceMesh.getTransforms().add(javafx.scene.transform.Transform.translate(imageOffset/10, imageOffset/10));
+		sliceMesh.getTransforms().add(javafx.scene.transform.Transform.translate(imageOffsetMotion, imageOffsetMotion));
 		AnchorPane anchor = new AnchorPane(sliceMesh);
 		AnchorPane.setBottomAnchor(sliceMesh, (double) 0);
 		AnchorPane.setTopAnchor(sliceMesh, (double) 0);
 		AnchorPane.setLeftAnchor(sliceMesh, (double) 0);
 		AnchorPane.setRightAnchor(sliceMesh, (double) 0);
 		snapshotGroup = new Pane(anchor);
+		snapshotGroup.prefHeight((double)(yPix+imageOffset))
+		snapshotGroup.prefWidth((double)(xPix+imageOffset))
 		snapshotGroup.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
 
@@ -963,13 +966,13 @@ ISlice se2 =new ISlice (){
 		
 		ImageView sliceImage = new ImageView(obj_img);
 		
-		sliceImage.getTransforms().add(javafx.scene.transform.Transform.translate(xOffset-imageOffset/10, yOffset-imageOffset/10));
+		sliceImage.getTransforms().add(javafx.scene.transform.Transform.translate(xOffset-imageOffsetMotion, yOffset-imageOffsetMotion));
 		sliceImage.getTransforms().add(javafx.scene.transform.Transform.scale(scaleX,scaleY ));
 		BowlerStudioController.getBowlerStudio() .addNode(sliceImage)
 		//
 
 		double MMTOPX = 3.5409643774783404;
-		float outputScale = (float) (MMTOPX / (ratioOrentation?scaleX:scaleY));
+		float outputScale = (float) (MMTOPX);
 		// Options
 		HashMap<String, Float> options = new HashMap<String, Float>();
 
@@ -1075,21 +1078,25 @@ ISlice se2 =new ISlice (){
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(svg);
 		bw.close();
-		double totalScale =( scaleX*scaleX)/SVGExporter.Scale
+		double totalScale =scaleX/MMTOPX
 		Transform tr = new Transform()
-					.translate(xOffset-imageOffset/10, yOffset-imageOffset/10,0)
+					.translate(xOffset-imageOffsetMotion, yOffset-imageOffsetMotion,0)
 					.scale(totalScale)
 					//
-		List<Polygon>  svgPolys = SVGLoad.toPolygons(tmpsvg).collect{
+		ArrayList<Polygon>  svgPolys = SVGLoad.toPolygons(tmpsvg).collect{
 			it.transform(tr)
 		}
 		tmpsvg.delete()
 		print "Done Slicing! Took "+((double)(System.currentTimeMillis()-start)/1000.0)+"\n\n"
-		println "Scales "+scaleX+" "+scaleY+" "+totalScale
-		//svgPolys.remove(0)
+		
+		def okParts = []
+		for(int x=0;x<svgPolys.size();x++){
+			okParts.add(svgPolys.get(x))
+		}
+		println "Scales "+scaleX+" "+scaleY+" "+totalScale+" total "+okParts.size()
 		//println svg
-		BowlerStudioController.getBowlerStudio() .addObject((Object)svgPolys,(File)null)
-		return 	svgPolys
+		BowlerStudioController.getBowlerStudio() .addObject((Object)okParts,(File)null)
+		return 	okParts
 	}
 }
 Slice.setSliceEngine(se2)
