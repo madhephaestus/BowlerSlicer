@@ -1083,7 +1083,7 @@ ISlice se2 =new ISlice (){
 					.scale(totalScale)
 					//
 		SVGLoad l=new SVGLoad(tmpsvg.toURI())	
-		l.loadAllGroups(0.0004, 0, 0);
+		l.loadAllGroups(0.0004, 0.0, 0.0);
 		ArrayList<Polygon>  svgPolys = l.toPolygons().collect{
 			it.transform(tr)
 		}
@@ -1107,9 +1107,9 @@ ISlice se2 =new ISlice (){
 				CSG bpBox =bp.toCSG()
 				double xdiff = Math.abs(bpBox.getTotalX()-box.getTotalX())
 				double ydiff = Math.abs(bpBox.getTotalY()-box.getTotalY())
-				double xdiffCenter = Math.abs(box.getCenter().minus(bpBox.getCenter()).x)
-				double ydiffCenter =Math.abs(box.getCenter().minus(bpBox.getCenter()).y)
-				double delta =0.001
+				double xdiffCenter = Math.abs(box.getCenter().x-bpBox.getCenter().x)
+				double ydiffCenter =Math.abs(box.getCenter().y-bpBox.getCenter().y)
+				double delta =0.00001
 				if(	(xdiff<delta)&&
 					(ydiff<delta) &&
 					(ydiffCenter<delta)&&
@@ -1117,7 +1117,7 @@ ISlice se2 =new ISlice (){
 				){
 					
 					okToAdd=false
-					break;
+					//break;
 				}
 			}
 			if(okToAdd){
