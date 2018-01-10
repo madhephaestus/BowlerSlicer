@@ -1109,10 +1109,10 @@ ISlice se2 =new ISlice (){
 				double ydiff = Math.abs(bpBox.getTotalY()-box.getTotalY())
 				double xdiffCenter = Math.abs(box.getCenter().x-bpBox.getCenter().x)
 				double ydiffCenter =Math.abs(box.getCenter().y-bpBox.getCenter().y)
-				double delta =0.00001
+				double delta =0.000001
 				if(	(xdiff<delta)&&
 					(ydiff<delta) &&
-					(ydiffCenter<delta)&&
+					(xdiffCenter<delta)&&
 					(ydiffCenter<delta)
 				){
 					
