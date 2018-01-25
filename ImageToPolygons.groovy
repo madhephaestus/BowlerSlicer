@@ -49,9 +49,13 @@ import javafx.stage.Stage;
 println "Converting image to Polygons"
 if (args == null)
 	return []
-double scaleX = (BufferedImage)args[1]
-double scaleY = (BufferedImage)args[2]
+double scaleX = (Double)args[1]
+double scaleY = (Double)args[2]
+double xOffset= (Double)args[3]
+double yOffset= (Double)args[4]
+double imageOffsetMotion = (Double)args[5]
 BufferedImage bi = (BufferedImage)args[0]
+CSG slicePart = (CSG)args[6]
 double MMTOPX = 3.5409643774783404*100;
 float outputScale = (float) (MMTOPX)
 // Options
@@ -169,7 +173,7 @@ ArrayList<Polygon>  svgPolys = l.toPolygons().collect{
 	it.transform(tr)
 }
 tmpsvg.delete()
-print "Done Slicing! Took "+((double)(System.currentTimeMillis()-start)/1000.0)+"\n\n"
+
 
 def okParts = []
 for(int x=0;x<svgPolys.size();x++){

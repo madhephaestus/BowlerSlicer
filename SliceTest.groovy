@@ -165,11 +165,20 @@ ISlice se2 =new ISlice (){
 		print "\nTracing..."
 		BufferedImage bi = SwingFXUtils.fromFXImage(obj_img,(BufferedImage)null)
 		try{
-			return ScriptingEngine.gitScriptRun(
+			def p= ScriptingEngine.gitScriptRun(
 		                "https://github.com/madhephaestus/BowlerSlicer.git", // git location of the library
 		                      "ImageToPolygons.groovy" , // file to load
-		                      [bi,new Double(scaleX),new Double(scaleY)]// no parameters but not null
+		                      [bi,
+		                      new Double(scaleX),
+		                      new Double(scaleY),
+		                      new Double(xOffset),
+		                      new Double(yOffset),
+		                      new Double(imageOffsetMotion),
+		                      slicePart
+		                      ]// 
 	                        );
+	           print "Done Slicing! Took "+((double)(System.currentTimeMillis()-start)/1000.0)+"\n\n"
+	           return p
 		}catch(Exception ex){
 			BowlerStudio.printStackTrace(ex)
 			
