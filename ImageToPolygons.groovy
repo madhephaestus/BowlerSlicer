@@ -49,7 +49,9 @@ import javafx.stage.Stage;
 println "Converting image to Polygons"
 if (args == null)
 	return []
-
+double scaleX = (BufferedImage)args[1]
+double scaleY = (BufferedImage)args[2]
+BufferedImage bi = (BufferedImage)args[0]
 double MMTOPX = 3.5409643774783404*100;
 float outputScale = (float) (MMTOPX)
 // Options
@@ -136,7 +138,7 @@ options.put("blurradius", 0f); // 0f means
 options.put("blurdelta", 20f); // smaller than this
                           // RGB difference
                           // will be blurred
-BufferedImage bi = (BufferedImage)args[0]
+
 
 String svg = com.neuronrobotics.bowlerstudio.utils.ImageTracer.imageToSVG(bi,options,(byte[][])null)
 int headerStart = svg.indexOf(">")+1
