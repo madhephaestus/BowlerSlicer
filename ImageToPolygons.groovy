@@ -56,6 +56,27 @@ double yOffset= (Double)args[4]
 double imageOffsetMotion = (Double)args[5]
 BufferedImage bi = (BufferedImage)args[0]
 CSG slicePart = (CSG)args[6]
+List<Polygon> rawPolygons =( List<Polygon> )args[7]
+
+//This is the list of vertexes that are allowed to exist in the final polygon. 
+List<Vector3d> legalVerticies =[]
+for(Polygon poly:rawPolygons){
+	for(Vertex v:poly.vertices){
+		legalVerticies.add(v.pos)
+	}
+}
+
+/**
+ *  These are the functions to conver a list of ordered points into a polygon object
+List<Vector3d> newPolyPoints =[]
+// Load newPolyPoints by tracing bi and verifying the points by legalVerticies
+List<Vector3d> newPolyPointsOrdered = Extrude.toCCW(newPolyPoints)
+Polygon newPoly= Polygon.fromPoints(newPolyPointsOrdered)
+*/
+
+/**
+ *This algorithm takes the image file ans convers it into valid list of boundary polygons 
+ */
 double MMTOPX = 3.5409643774783404*100;
 float outputScale = (float) (MMTOPX)
 // Options

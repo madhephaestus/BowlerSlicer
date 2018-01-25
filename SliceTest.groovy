@@ -174,7 +174,8 @@ ISlice se2 =new ISlice (){
 		                      new Double(xOffset),
 		                      new Double(yOffset),
 		                      new Double(imageOffsetMotion),
-		                      slicePart
+		                      slicePart,
+		                      rawPolygons
 		                      ]// 
 	                        );
 	           print "Done Slicing! Took "+((double)(System.currentTimeMillis()-start)/1000.0)+"\n\n"
