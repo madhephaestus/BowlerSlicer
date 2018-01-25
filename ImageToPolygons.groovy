@@ -62,7 +62,9 @@ List<Polygon> rawPolygons =( List<Polygon> )args[7]
 List<Vector3d> legalVerticies =[]
 for(Polygon poly:rawPolygons){
 	for(Vertex v:poly.vertices){
-		legalVerticies.add(v.pos)
+		Vector3d position =v.pos
+		println " A point x=" +position.x+" y=" +position.y+" z="+position.z
+		legalVerticies.add(position)
 	}
 }
 
