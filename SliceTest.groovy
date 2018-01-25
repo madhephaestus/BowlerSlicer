@@ -168,7 +168,7 @@ ISlice se2 =new ISlice (){
 			return ScriptingEngine.gitScriptRun(
 		                "https://github.com/madhephaestus/BowlerSlicer.git", // git location of the library
 		                      "ImageToPolygons.groovy" , // file to load
-		                      [bi]// no parameters but not null
+		                      [bi,new Double(scaleX),new Double(scaleY)]// no parameters but not null
 	                        );
 		}catch(Exception ex){
 			BowlerStudio.printStackTrace(ex)
